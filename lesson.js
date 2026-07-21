@@ -101,7 +101,7 @@ function clearStep(step,i){
   var next=CFG.steps[i+1];
   if(next){ unlock(next.key); var b=$("#next-"+step.key); if(b) b.disabled=false; }
   progress();
-  if(step.type==="quiz") return;                 // 학습지는 자체 결과 연출이 있다
+  if(step.type==="quiz"||step.type==="probe") return;   // 학습지·탐구는 자체 결과 연출이 있다
   var miss=MISS[step.key]||0;
   var stars=window.FX?FX.starsFor(miss):3;
   var line = miss===0 ? "한 번도 틀리지 않았다. 완벽하다!"
@@ -358,6 +358,110 @@ BUILD.custom=function(sec,step,i){
     ok:function(node){ if(window.FX) FX.ok(node) },
     bad:function(node){ MISS[step.key]++; if(window.FX) FX.no(node) }
   });
+};
+
+/* 탐구 보고서 — 조사해서 항목별로 쓰고, 임시저장 + 온라인 제출 (시험과 별개) */
+BUILD.probe=function(sec,step,i){
+  var card=el("div","card");
+  card.appendChild(el("div","sectitle",'🔎 '+step.label+' <span class="pill">조사해서 쓰기</span>'));
+  card.appendChild(el("p","lead",step.intro||"시험이 아니다! 직접 찾아보고 조사해서 정리해 보자."));
+
+  var g='<div class="pg-h">📌 이번 과제</div>'+(step.topic||"관심 있는 주제를 조사해 정리해 보자.");
+  if(step.keywords && step.keywords.length){
+    g+='<div class="pg-h" style="margin-top:11px">🔍 이렇게 찾아보자</div>검색창에 아래 같은 말을 넣어 보면 자료가 잘 나온다.'+
+       '<div class="pg-kw">'+step.keywords.map(function(k){return '<span>'+k+'</span>'}).join("")+'</div>';
+  }
+  card.appendChild(el("div","pguide",g));
+
+  var fbox=el("div"); card.appendChild(fbox);
+  var helper=el("div","phelper","각 칸을 채우면 자동으로 임시저장된다."); card.appendChild(helper);
+  var submit=el("button","btn bigbtn gold","📤 선생님께 제출"); submit.style.cssText="width:100%;margin-top:4px;display:none"; card.appendChild(submit);
+  var clr=el("button","btn bigbtn ghost","🗑️ 전부 지우기"); clr.style.cssText="width:100%;margin-top:8px"; card.appendChild(clr);
+  var rcHint=el("div","phelper",""); rcHint.style.marginTop="8px"; card.appendChild(rcHint);
+  sec.appendChild(card);
+
+  var tip=$("#pSavedTip"); if(!tip){ tip=el("div","psaved","임시저장됨"); tip.id="pSavedTip"; document.body.appendChild(tip); }
+
+  var fields=(step.fields&&step.fields.length)?step.fields:[
+    {k:"subject",label:"조사한 대상",tip:"무엇을 조사했는지 (이름·종류 등)",min:8,short:true},
+    {k:"content",label:"조사한 내용",tip:"찾아본 내용을 정리해 쓰자",min:30},
+    {k:"learned",label:"새로 알게 된 점",tip:"조사 전에는 몰랐던 것. '왜 그런지'까지 쓰면 좋다",min:25},
+    {k:"src",label:"참고한 자료(출처)",tip:"사용한 웹사이트나 책 이름",min:4,short:true}
+  ];
+  var PKEY="drone_probe_"+(CFG.id||CFG.name)+"_"+step.key;
+  var hasRC=!!(window.ResultCollector&&ResultCollector.config&&ResultCollector.config.endpoint);
+  var probeDone=false, saveT;
+  function pel(k){ return $("#pb_"+step.key+"_"+k) }
+  function grow(t){ if(t&&t.tagName==="TEXTAREA"){ t.style.height="auto"; t.style.height=Math.max(80,t.scrollHeight)+"px" } }
+  function allFilled(){ return fields.every(function(f){ var e=pel(f.k); return e && e.value.trim().length>=f.min }) }
+  function saveP(){
+    clearTimeout(saveT);
+    saveT=setTimeout(function(){
+      var d={}; fields.forEach(function(f){ var e=pel(f.k); if(e) d[f.k]=e.value });
+      try{ localStorage.setItem(PKEY,JSON.stringify(d)); tip.classList.add("show"); setTimeout(function(){tip.classList.remove("show")},900) }catch(e){}
+    },400);
+  }
+
+  fields.forEach(function(f){
+    var wrap=el("div","pf");
+    var input=f.short?('<input id="pb_'+step.key+'_'+f.k+'" placeholder="여기에 쓰세요">')
+                     :('<textarea id="pb_'+step.key+'_'+f.k+'" placeholder="여기에 쓰세요"></textarea>');
+    wrap.innerHTML='<div class="pfl">'+f.label+'<span class="pfr">*</span></div>'+
+      '<div class="pft">'+(f.tip||"")+'</div>'+input+
+      '<div class="pfc" id="pc_'+step.key+'_'+f.k+'">0자 (권장 '+f.min+'자 이상)</div>';
+    fbox.appendChild(wrap);
+    var t=pel(f.k), c=$("#pc_"+step.key+"_"+f.k);
+    t.addEventListener("input",function(){
+      var n=t.value.trim().length, was=c.classList.contains("ok");
+      c.textContent=n+"자 (권장 "+f.min+"자 이상)"; c.className="pfc"+(n>=f.min?" ok":"");
+      if(!was&&n>=f.min&&window.FX){ FX.burst(c,{color:"#34d399",n:7,dist:40}); FX.punch(c); FX.sound("up") }
+      grow(t); saveP();
+      if(!probeDone && allFilled()){
+        probeDone=true; clearStep(step,i);
+        if(window.FX) FX.banner({icon:"🔎",title:"탐구 보고서 완성!",
+          sub:"조사한 내용을 잘 정리했다."+(hasRC?"<br>아래 <b>제출</b> 버튼으로 선생님께 보내자":""),
+          stars:false, btn:"좋아요 👍", onClose:function(){ if(hasRC) submit.scrollIntoView({behavior:"smooth",block:"center"}) }});
+      }
+    });
+  });
+
+  // 불러오기 (자동 임시저장 복원)
+  (function(){
+    var raw=null; try{ raw=localStorage.getItem(PKEY) }catch(e){}
+    if(!raw) return; var d; try{ d=JSON.parse(raw) }catch(e){ return }
+    fields.forEach(function(f){
+      var e=pel(f.k); if(e && d[f.k]!=null){ e.value=d[f.k];
+        var n=e.value.trim().length, c=$("#pc_"+step.key+"_"+f.k);
+        c.textContent=n+"자 (권장 "+f.min+"자 이상)"; c.className="pfc"+(n>=f.min?" ok":""); grow(e); }
+    });
+    if(allFilled()){ probeDone=true; CLEARED[step.key]=false; clearStep(step,i); }
+  })();
+
+  if(hasRC){ submit.style.display="block"; }
+  else{ rcHint.textContent="※ 선생님이 준 제출용 링크(?rc=…)로 열면 '제출' 버튼이 나온다. 지금은 화면을 보여 주거나 나중에 제출하자."; }
+
+  submit.addEventListener("click",function(){
+    var missing=fields.filter(function(f){ var e=pel(f.k); return !e || e.value.trim().length<(f.short?3:15) });
+    if(missing.length){ helper.textContent="아직 덜 쓴 칸이 있다: "+missing.map(function(f){return f.label}).join(", "); return; }
+    var body=fields.map(function(f){ return "["+f.label+"] "+pel(f.k).value.trim().replace(/\s+/g," ") }).join("  //  ");
+    if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
+    var filled=fields.filter(function(f){ return pel(f.k).value.trim().length>0 }).length;
+    ResultCollector.open({correct:filled,total:fields.length,wrong:body,
+      labels:{correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"탐구 내용"}});
+    if(window.FX) FX.sound("clear");
+  });
+  clr.addEventListener("click",function(){
+    if(!confirm("작성한 탐구보고서를 전부 지울까? 되돌릴 수 없다.")) return;
+    try{ localStorage.removeItem(PKEY) }catch(e){}
+    probeDone=false;
+    fields.forEach(function(f){
+      var e=pel(f.k); if(e){ e.value=""; if(e.tagName==="TEXTAREA") e.style.height="80px" }
+      var c=$("#pc_"+step.key+"_"+f.k); if(c){ c.textContent="0자 (권장 "+f.min+"자 이상)"; c.className="pfc" }
+    });
+    helper.textContent="각 칸을 채우면 자동으로 임시저장된다.";
+  });
+
+  navBar(sec,step,i);
 };
 
 /* 학습지 — 객관식 + 단답, 자동 채점 + 제출 */

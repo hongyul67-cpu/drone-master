@@ -36,13 +36,13 @@
   header.top .t3{font-size:12px;color:var(--sub);margin-top:2px}
 
   /* ── 진행 탭 ── */
-  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
   .step{
     background:var(--panel);border:1px solid var(--line);border-radius:14px;
-    padding:10px 6px;text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden
+    padding:10px 3px;text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden
   }
-  .step .ico{font-size:22px;display:block}
-  .step .lb{font-size:12px;font-weight:800;color:var(--sub);margin-top:3px}
+  .step .ico{font-size:20px;display:block}
+  .step .lb{font-size:11px;font-weight:800;color:var(--sub);margin-top:3px}
   .step.on{background:linear-gradient(135deg,#0ea5e9,#2563eb);border-color:transparent}
   .step.on .lb{color:#fff}
   .step.done::after{content:"✓";position:absolute;top:5px;right:7px;color:var(--good);font-weight:900;font-size:13px}
@@ -81,13 +81,10 @@
   .info-box .ib-empty{color:var(--muted);font-size:13px;display:flex;align-items:center;height:70px;justify-content:center}
   .learn-progress{font-size:12px;color:var(--muted);margin-top:10px;text-align:right}
 
-  /* ── 게임 공통 HUD ── */
-  .hud{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-  .stat{flex:1;min-width:78px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
-  .stat .v{font-size:20px;font-weight:900}
-  .stat .k{font-size:11px;color:var(--muted);font-weight:700}
-  .stat.score .v{color:var(--gold)}
-  .stat.streak .v{color:var(--violet)}
+  /* ── 게임 공통 HUD (fx.js가 그림) ── */
+  .hud-fx{margin-bottom:10px}
+  .mini-prog{font-size:12.5px;color:var(--sub);font-weight:700;text-align:right;margin-bottom:10px}
+  .mini-prog b{color:var(--brand2);font-size:15px}
 
   /* ── 조립 게임 ── */
   .assemble-target{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
@@ -171,9 +168,25 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .toast.good{border-color:var(--good)} .toast.bad{border-color:var(--bad)}
 
+  /* ── 탐구보고서 ── */
+  .guide{background:#0d1830;border:1px dashed var(--line);border-radius:14px;padding:13px 14px;margin:4px 0 14px;font-size:13px;color:var(--sub)}
+  .guide .gh{font-weight:900;color:var(--brand2);margin-bottom:6px;font-size:13.5px}
+  .guide .kw{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .guide .kw span{font-size:11.5px;background:#132a4a;border:1px solid var(--line);color:var(--brand);padding:3px 9px;border-radius:99px;font-weight:700}
+  .pf{margin-bottom:13px}
+  .pf .pl{font-size:13.5px;font-weight:900;color:var(--ink);margin-bottom:3px}
+  .pf .pl .req{color:var(--bad);font-size:11px;margin-left:4px}
+  .pf .pt{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .pf input,.pf textarea{width:100%;background:#0d1830;border:1px solid var(--line);border-radius:11px;
+    color:var(--ink);padding:11px 12px;font-size:14px;font-family:inherit;line-height:1.6}
+  .pf textarea{min-height:84px;resize:vertical}
+  .pf input:focus,.pf textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(56,189,248,.14)}
+  .pf .cnt{font-size:11.5px;color:var(--muted);text-align:right;margin-top:3px}
+  .pf .cnt.ok{color:var(--good)}
+  .savedtip{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#12402f;border:1px solid var(--good);
+    color:#a7f3d0;padding:9px 18px;border-radius:99px;font-size:13px;font-weight:800;opacity:0;transition:.3s;pointer-events:none;z-index:50}
+  .savedtip.show{opacity:1}
   .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}
-  .confetti{position:fixed;top:-10px;font-size:18px;pointer-events:none;z-index:98;animation:fall linear forwards}
-  @keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.9}}
 </style>
 </head>
 <body>
@@ -184,15 +197,16 @@
     <div>
       <div class="t1">드론기초 · 3차시</div>
       <div class="t2">드론의 기본구조</div>
-      <div class="t3">배우기 → 조립 → 센서 → 학습지 순서로 클리어!</div>
+      <div class="t3">배우기 → 조립 → 센서 → 학습지 → 탐구까지!</div>
     </div>
   </header>
 
   <div class="steps">
     <div class="step on" data-go="learn"><span class="ico">📖</span><span class="lb">배우기</span></div>
-    <div class="step" data-go="build"><span class="ico">🛠️</span><span class="lb">조립게임</span></div>
-    <div class="step" data-go="sensor"><span class="ico">🎯</span><span class="lb">센서게임</span></div>
+    <div class="step" data-go="build"><span class="ico">🛠️</span><span class="lb">조립</span></div>
+    <div class="step" data-go="sensor"><span class="ico">🎯</span><span class="lb">센서</span></div>
     <div class="step" data-go="quiz"><span class="ico">✍️</span><span class="lb">학습지</span></div>
+    <div class="step" data-go="probe"><span class="ico">🔎</span><span class="lb">탐구</span></div>
   </div>
 
   <!-- ══════════ 1. 배우기 ══════════ -->
@@ -231,20 +245,12 @@
     <div class="card">
       <div class="sectitle">🛠️ 드론 조립하기 <span class="pill">탭 → 배치</span></div>
       <p class="lead">아래 부품을 하나 고른 뒤, 알맞은 자리를 누르세요. 연속으로 맞히면 콤보 보너스!</p>
-      <div class="hud">
-        <div class="stat score"><div class="v" id="bScore">0</div><div class="k">점수</div></div>
-        <div class="stat streak"><div class="v" id="bStreak">0</div><div class="k">콤보</div></div>
-        <div class="stat"><div class="v" id="bDone">0/5</div><div class="k">장착</div></div>
-      </div>
+      <div class="hud-fx" id="buildHud"></div>
+      <div class="mini-prog">🔩 장착 <b id="bDone">0</b> / 5</div>
 
       <div class="assemble-target" id="slots"></div>
       <div class="helper" id="buildHelper">먼저 부품을 하나 고르세요.</div>
       <div class="tray" id="tray"></div>
-
-      <div class="result-banner" id="buildBanner">
-        <div class="big">🎉</div>
-        <div class="sm" id="buildBannerTxt"></div>
-      </div>
     </div>
     <div class="nav-next">
       <button class="btn bigbtn ghost" data-go="learn">← 배우기</button>
@@ -257,16 +263,13 @@
     <div class="card">
       <div class="sectitle">🎯 센서 역할 맞추기 <span class="pill">왼쪽↔오른쪽</span></div>
       <p class="lead">FC 안의 센서들은 각자 다른 정보를 잰다! 센서와 역할을 연결하세요.</p>
-      <div class="hud">
-        <div class="stat score"><div class="v" id="sScore">0</div><div class="k">점수</div></div>
-        <div class="stat"><div class="v" id="sDone">0/5</div><div class="k">연결</div></div>
-      </div>
+      <div class="hud-fx" id="sensorHud"></div>
+      <div class="mini-prog">🔗 연결 <b id="sDone">0</b> / 5</div>
       <div class="match-wrap">
         <div class="mcol"><div class="mhead">센서</div><div id="sensorCol"></div></div>
         <div class="mcol"><div class="mhead">하는 일</div><div id="roleCol"></div></div>
       </div>
       <div class="helper" id="sensorHelper">센서를 하나 누른 뒤, 하는 일을 누르세요.</div>
-      <div class="result-banner" id="sensorBanner"><div class="big">🛰️</div><div class="sm" id="sensorBannerTxt"></div></div>
     </div>
     <div class="nav-next">
       <button class="btn bigbtn ghost" data-go="build">← 조립</button>
@@ -295,11 +298,42 @@
     </div>
     <div class="nav-next">
       <button class="btn bigbtn ghost" data-go="sensor">← 센서게임</button>
+      <button class="btn bigbtn" data-go="probe">🔎 탐구보고서 →</button>
+    </div>
+  </section>
+
+  <!-- ══════════ 5. 탐구보고서 ══════════ -->
+  <section class="panel" id="p-probe">
+    <div class="card">
+      <div class="sectitle">🔎 탐구 보고서 <span class="pill">조사해서 쓰기</span></div>
+      <p class="lead">시험이 아니에요! 관심 있는 드론을 <b>직접 찾아보고 조사</b>해서, 배운 기본구조로 정리해 봅니다.</p>
+
+      <div class="guide">
+        <div class="gh">📌 이번 과제</div>
+        관심 있는 드론 <b>한 대</b>를 정해, 그 드론의 <b>기본 구조를 부품별로 조사</b>해 아래 칸을 채우세요.
+        <div class="gh" style="margin-top:11px">🔍 이렇게 찾아보세요</div>
+        검색창에 아래 같은 말을 넣어 보면 자료가 잘 나와요.
+        <div class="kw">
+          <span>드론 이름 + 스펙</span><span>쿼드콥터 구조</span><span>드론 FC 종류</span>
+          <span>브러시리스 모터 Kv</span><span>리튬폴리머 배터리 mAh</span><span>드론 프레임 재질</span>
+        </div>
+      </div>
+
+      <div id="probeFields"></div>
+
+      <div class="helper" id="probeHelper">각 칸을 채우면 자동으로 임시저장돼요.</div>
+      <button class="btn bigbtn gold" id="probeSubmit" style="display:none">📤 선생님께 제출</button>
+      <button class="btn bigbtn ghost" id="probeClear" style="margin-top:8px">🗑️ 전부 지우기</button>
+      <div class="helper" id="probeRcHint" style="margin-top:8px"></div>
+    </div>
+    <div class="nav-next">
+      <button class="btn bigbtn ghost" data-go="quiz">← 학습지</button>
     </div>
     <div class="foot">드론기초 학습도구 · 3차시 드론의 기본구조</div>
   </section>
 
 </div>
+<div class="savedtip" id="savedTip">임시저장됨</div>
 
 <div class="toast" id="toast"></div>
 
@@ -353,22 +387,19 @@
     var t=$("#toast"); t.textContent=msg; t.className="toast show"+(kind?(" "+kind):"");
     clearTimeout(toastT); toastT=setTimeout(function(){t.className="toast"},1300);
   }
-  function confetti(){
-    var em=["🎉","✨","🎊","⭐","🚁","💙"];
-    for(var i=0;i<26;i++){(function(i){
-      var c=document.createElement("div"); c.className="confetti";
-      c.textContent=em[i%em.length];
-      c.style.left=(Math.random()*100)+"vw";
-      c.style.animationDuration=(1.6+Math.random()*1.4)+"s";
-      c.style.fontSize=(14+Math.random()*16)+"px";
-      document.body.appendChild(c);
-      setTimeout(function(){c.remove()},3200);
-    })(i);}
+  // 클리어 축하는 fx.js의 FX.banner(별점) + 파티클로 처리한다.
+  // fx.js HUD(점수·콤보·최고콤보)를 해당 게임 패널에 바인딩. 점수는 전 게임 누적.
+  function bindHud(id){
+    var el=$("#"+id); if(!el||!window.FX) return;
+    FX.hud(el);
+    var b=el.querySelector(".hb"); if(b) b.textContent=FX.best();
   }
   function go(name){
     $$(".panel").forEach(function(p){p.classList.remove("show")});
     $("#p-"+name).classList.add("show");
     $$(".step").forEach(function(s){s.classList.toggle("on",s.dataset.go===name)});
+    if(name==="build") bindHud("buildHud");
+    if(name==="sensor") bindHud("sensorHud");
     window.scrollTo({top:0,behavior:"smooth"});
   }
   $$("[data-go]").forEach(function(el){
@@ -389,10 +420,16 @@
       $("#learnInfo").innerHTML=
         '<div class="ib-h">'+p.e+' '+p.n+' <span class="ib-tag">'+p.tag+'</span></div>'+
         '<div class="ib-b">'+p.role+'</div>';
+      if(window.FX) FX.punch(chip);
+      var fresh=!seen[chip.dataset.part];
       seen[chip.dataset.part]=true;
       var n=Object.keys(seen).length;
       $("#learnProg").textContent=n+" / 5 확인함";
-      if(n>=5){ $("#toBuild").disabled=false; $("#toBuild").textContent="🛠️ 조립게임 시작!"; markDone("learn"); }
+      if(fresh && window.FX) FX.burst(chip,{color:"#38bdf8",n:7});
+      if(n>=5){
+        $("#toBuild").disabled=false; $("#toBuild").textContent="🛠️ 조립게임 시작!"; markDone("learn");
+        if(window.FX) FX.banner({icon:"📖",title:"부품 5개 학습 완료!",sub:"이제 직접 <b>조립</b>해 볼까요?",stars:false,btn:"🛠️ 조립게임 시작 →",onClose:function(){ go("build") }});
+      }
     });
   });
 
@@ -404,7 +441,7 @@
     {key:"fc",role:"명령·센서 처리 두뇌",hint:"CPU 내장"},
     {key:"landing",role:"지면에 닿는 다리",hint:"착륙 시"}
   ];
-  var bScore=0,bStreak=0,bDone=0,selPiece=null,slotFilled={};
+  var bDone=0,bMiss=0,selPiece=null,slotFilled={};
   function renderBuild(){
     var sc=$("#slots"); sc.innerHTML="";
     SLOTS.forEach(function(s){
@@ -436,41 +473,38 @@
     if(slotFilled[slotKey])return;
     if(!selPiece){ toast("먼저 부품을 고르세요","bad"); return; }
     if(selPiece===slotKey){
-      // 정답
+      // 정답 — fx.js가 파티클·펀치·콤보배지·점수카운트업·소리를 처리
       slotFilled[slotKey]=true; bDone++;
-      bStreak++; var gain=10+(bStreak>=2?bStreak*2:0);
-      bScore+=gain;
       var p=PARTS[slotKey];
       slotEl.classList.add("filled");
       slotEl.innerHTML='<div class="placed"><span class="pe">'+p.e+'</span> '+p.n+'</div><div class="role">'+SLOTS.filter(function(s){return s.key===slotKey})[0].role+'</div>';
       $('.piece[data-key="'+slotKey+'"]').classList.add("used");
       $$(".piece").forEach(function(x){x.classList.remove("sel")}); selPiece=null;
-      $("#bScore").textContent=bScore; $("#bStreak").textContent=bStreak;
-      $("#bDone").textContent=bDone+"/5";
-      FX.burst(slotEl); FX.punch(slotEl); FX.sound(bStreak>=3?"combo":"ok");
-      toast(bStreak>=2?("콤보 x"+bStreak+"! +"+gain):("정답! +"+gain),"good");
-      $("#buildHelper").textContent="좋아요! 다음 부품을 고르세요";
+      $("#bDone").textContent=bDone;
+      if(window.FX) FX.ok(slotEl,{base:10,color:"#34d399"});
+      $("#buildHelper").textContent=bDone<5?"좋아요! 다음 부품을 고르세요":"";
       if(bDone>=5) finishBuild();
     }else{
-      // 오답
-      bStreak=0; $("#bStreak").textContent=0;
-      slotEl.classList.add("wrong");
-      setTimeout(function(){slotEl.classList.remove("wrong")},400);
-      FX.shake(slotEl); FX.flash(); FX.sound("no");
-      toast("여긴 아니에요! 역할을 다시 읽어보세요","bad");
+      // 오답 — 흔들림·붉은 플래시·콤보 끊김
+      bMiss++;
+      if(window.FX) FX.no(slotEl);
+      $("#buildHelper").textContent="여긴 아니에요! 역할을 다시 읽어보세요";
     }
   }
   function finishBuild(){
     markDone("build"); $("#toSensor").disabled=false;
-    confetti();
-    $("#buildBannerTxt").textContent="드론 조립 완성! 획득 점수 "+bScore+"점";
-    $("#buildBanner").classList.add("show");
-    $("#buildHelper").textContent="완성! 아래 센서게임으로 넘어가세요 →";
+    $("#buildHelper").textContent="완성! 센서게임으로 넘어가세요 →";
+    if(window.FX) FX.banner({
+      icon:"🚁", title:"드론 조립 완성!",
+      sub:"실수 "+bMiss+"번 · 누적 점수 <b>"+FX.score()+"점</b>",
+      stars:FX.starsFor(bMiss),
+      btn:"🎯 센서게임 →", onClose:function(){ go("sensor") }
+    });
   }
   renderBuild();
 
   /* ───────── 3. 센서 매칭 ───────── */
-  var sScore=0,sDone=0,selSensor=null,matched={};
+  var sDone=0,sMiss=0,selSensor=null,matched={};
   function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=(i*5+2)%(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
   function renderSensor(){
     var sc=$("#sensorCol"); sc.innerHTML="";
@@ -495,27 +529,31 @@
         if(d.classList.contains("matched"))return;
         if(!selSensor){ toast("먼저 왼쪽 센서를 고르세요","bad"); return; }
         if(selSensor===s.id){
-          matched[s.id]=true; sDone++; sScore+=20;
+          matched[s.id]=true; sDone++;
           $$('#sensorCol .mitem[data-id="'+s.id+'"]').forEach(function(x){x.classList.add("matched");x.classList.remove("sel")});
           d.classList.add("matched"); selSensor=null;
-          $("#sScore").textContent=sScore; $("#sDone").textContent=sDone+"/5";
-          FX.burst(d); FX.punch(d); FX.sound("ok");
-          toast("연결 성공! +20","good");
+          $("#sDone").textContent=sDone;
+          if(window.FX) FX.ok(d,{base:10,color:"#22d3ee"});
+          $("#sensorHelper").textContent=sDone<5?"좋아! 다음 센서를 연결하세요":"";
           if(sDone>=5) finishSensor();
         }else{
-          d.classList.add("badflash"); setTimeout(function(){d.classList.remove("badflash")},400);
-          FX.shake(d); FX.flash(); FX.sound("no");
-          toast("다시 생각해봐요!","bad");
+          sMiss++;
+          if(window.FX) FX.no(d);
+          $("#sensorHelper").textContent="다시 생각해봐요! 센서가 재는 정보를 떠올려요";
         }
       });
       rc.appendChild(d);
     });
   }
   function finishSensor(){
-    markDone("sensor"); $("#toQuiz").disabled=false; confetti();
-    $("#sensorBannerTxt").textContent="센서 5종 정복! +"+sScore+"점";
-    $("#sensorBanner").classList.add("show");
+    markDone("sensor"); $("#toQuiz").disabled=false;
     $("#sensorHelper").textContent="완료! 학습지로 넘어가세요 →";
+    if(window.FX) FX.banner({
+      icon:"🛰️", title:"센서 5종 정복!",
+      sub:"실수 "+sMiss+"번 · 누적 점수 <b>"+FX.score()+"점</b>",
+      stars:FX.starsFor(sMiss),
+      btn:"✍️ 학습지 →", onClose:function(){ go("quiz") }
+    });
   }
   renderSensor();
 
@@ -554,7 +592,7 @@
       var ans=QUIZ[qi].a, my=picked[qi];
       $$(".opt",q).forEach(function(op){
         var oi=parseInt(op.dataset.oi,10);
-        if(oi===ans) op.classList.add("correct");
+        if(oi===ans){ op.classList.add("correct"); if(my===ans && window.FX) FX.burst(op,{color:"#34d399",n:7}); }
         else if(oi===my) op.classList.add("wrong");
       });
       if(my===ans) correct++; else wrong.push(qi+1);
@@ -565,15 +603,21 @@
     $("#quizScore").textContent=score+"점";
     $("#quizSub").textContent=correct+" / "+QUIZ.length+" 정답"+(wrong.length?(" · 틀린 문제: "+wrong.join(", ")):" · 만점! 🎉");
     $("#quizBanner").classList.add("show");
-    if(score>=80) confetti();
     $("#gradeBtn").style.display="none";
     $("#afterGrade").style.display="flex";
     markDone("quiz");
     // ?rc= 로 열렸을 때만 제출 버튼 노출
-    if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
-      $("#submitBtn").style.display="block";
-    }
+    var hasRC = window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint;
+    if(hasRC){ $("#submitBtn").style.display="block"; }
     window.scrollTo({top:0,behavior:"smooth"});
+    if(window.FX) FX.banner({
+      icon: score>=90?"🏆":(score>=70?"🎉":"💪"),
+      title: score+"점!",
+      sub: correct+" / "+QUIZ.length+" 정답"+(wrong.length?" · 오답노트를 확인하세요":" · 완벽해요!")
+           +(hasRC?"<br>아래 <b>선생님께 제출</b>도 잊지 마세요":""),
+      stars: FX.starsFor(wrong.length),
+      btn:"결과 보기", onClose:function(){ window.scrollTo({top:0,behavior:"smooth"}); }
+    });
   });
 
   $("#retryBtn").addEventListener("click",function(){
@@ -588,6 +632,103 @@
   $("#submitBtn").addEventListener("click",function(){
     var r=window.__quizResult; if(!r)return;
     ResultCollector.open(r);
+  });
+
+  /* ───────── 5. 탐구보고서 ───────── */
+  var PROBE=[
+    {k:"drone",  label:"조사한 드론 (이름·제조사·용도)", tip:"예) DJI Mavic 3 · DJI · 항공촬영용", min:8,  short:true},
+    {k:"frame",  label:"프레임·착륙장치", tip:"기체 형태(쿼드/헥사 등)와 재질, 다리(착륙장치) 모양을 조사해 써요", min:25},
+    {k:"drive",  label:"구동부 — 모터·프로펠러·변속기(ESC)", tip:"모터 종류, 프로펠러 날개 수, 변속기(ESC) 특징 등", min:25},
+    {k:"control",label:"제어부 — 비행제어장치(FC)·센서", tip:"어떤 FC를 쓰는지, GPS·자이로 등 어떤 센서가 들어 있는지", min:25},
+    {k:"learned",label:"조사하며 새로 알게 된 점", tip:"조사 전에는 몰랐던 것. '왜 그런지'까지 쓰면 더 좋아요", min:25},
+    {k:"src",    label:"참고한 자료(출처)", tip:"사용한 웹사이트 주소나 책 이름", min:4, short:true}
+  ];
+  var PKEY="drone_probe_03_v1", pSaveT, probeDone=false;
+  var hasRC = !!(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint);
+
+  function pEl(k){ return $("#pb_"+k); }
+  function grow(t){ if(t.tagName==="TEXTAREA"){ t.style.height="auto"; t.style.height=Math.max(84,t.scrollHeight)+"px"; } }
+  function allFilled(){ return PROBE.every(function(f){ var el=pEl(f.k); return el && el.value.trim().length>=f.min; }); }
+
+  function renderProbe(){
+    var box=$("#probeFields"); box.innerHTML="";
+    PROBE.forEach(function(f){
+      var el=document.createElement("div"); el.className="pf";
+      var input=f.short?('<input id="pb_'+f.k+'" placeholder="여기에 쓰세요">')
+                       :('<textarea id="pb_'+f.k+'" placeholder="여기에 쓰세요"></textarea>');
+      el.innerHTML='<div class="pl">'+f.label+'<span class="req">*</span></div>'+
+        '<div class="pt">'+f.tip+'</div>'+input+
+        '<div class="cnt" id="pc_'+f.k+'">0자 (권장 '+f.min+'자 이상)</div>';
+      box.appendChild(el);
+      var t=pEl(f.k), c=$("#pc_"+f.k);
+      t.addEventListener("input",function(){
+        var n=t.value.trim().length, was=c.classList.contains("ok");
+        c.textContent=n+"자 (권장 "+f.min+"자 이상)";
+        c.className="cnt"+(n>=f.min?" ok":"");
+        if(!was && n>=f.min && window.FX){ FX.burst(c,{color:"#34d399",n:7,dist:40}); FX.punch(c); FX.sound("up"); }
+        grow(t); saveProbe();
+        if(!probeDone && allFilled()){
+          probeDone=true; markDone("probe");
+          if(window.FX) FX.banner({icon:"🔎",title:"탐구 보고서 완성!",
+            sub:"관심 드론의 기본구조를 잘 정리했어요."+(hasRC?"<br>아래 <b>제출</b> 버튼으로 선생님께 보내세요":""),
+            stars:false, btn:"좋아요 👍", onClose:function(){ if(hasRC) $("#probeSubmit").scrollIntoView({behavior:"smooth",block:"center"}); }});
+        }
+      });
+    });
+  }
+  function saveProbe(){
+    clearTimeout(pSaveT);
+    pSaveT=setTimeout(function(){
+      var d={}; PROBE.forEach(function(f){ var el=pEl(f.k); if(el) d[f.k]=el.value; });
+      try{ localStorage.setItem(PKEY,JSON.stringify(d)); pFlash(); }catch(e){}
+    },400);
+  }
+  function pFlash(){ var t=$("#savedTip"); if(!t)return; t.classList.add("show"); setTimeout(function(){t.classList.remove("show")},900); }
+  function loadProbe(){
+    var raw=null; try{ raw=localStorage.getItem(PKEY) }catch(e){}
+    if(!raw) return;
+    var d; try{ d=JSON.parse(raw) }catch(e){ return; }
+    PROBE.forEach(function(f){
+      var el=pEl(f.k); if(el && d[f.k]!=null){
+        el.value=d[f.k];
+        var n=el.value.trim().length, c=$("#pc_"+f.k);
+        c.textContent=n+"자 (권장 "+f.min+"자 이상)"; c.className="cnt"+(n>=f.min?" ok":"");
+        grow(el);
+      }
+    });
+    if(allFilled()){ probeDone=true; markDone("probe"); }
+  }
+
+  renderProbe(); loadProbe();
+
+  if(hasRC){ $("#probeSubmit").style.display="block"; }
+  else{ $("#probeRcHint").textContent="※ 선생님이 준 제출용 링크(?rc=…)로 열면 '제출' 버튼이 나와요. 지금은 화면을 보여 드리거나 나중에 제출하세요."; }
+
+  $("#probeSubmit").addEventListener("click",function(){
+    var missing=PROBE.filter(function(f){ var el=pEl(f.k); return !el || el.value.trim().length < (f.short?3:15); });
+    if(missing.length){
+      $("#probeHelper").textContent="아직 덜 쓴 칸이 있어요: "+missing.map(function(f){return f.label.split(" ")[0]}).join(", ");
+      toast("빈 칸을 채워 주세요","bad"); return;
+    }
+    var body=PROBE.map(function(f){ return "["+f.label+"] "+pEl(f.k).value.trim().replace(/\s+/g," "); }).join("  //  ");
+    if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
+    var filled=PROBE.filter(function(f){ return pEl(f.k).value.trim().length>0; }).length;
+    ResultCollector.open({
+      correct: filled, total: PROBE.length, wrong: body,
+      labels:{correct:"작성한 항목", total:"전체 항목", rate:"작성률(%)", wrong:"탐구 내용"}
+    });
+    if(window.FX) FX.sound("clear");
+  });
+
+  $("#probeClear").addEventListener("click",function(){
+    if(!confirm("작성한 탐구보고서를 전부 지울까요? 되돌릴 수 없어요.")) return;
+    try{ localStorage.removeItem(PKEY) }catch(e){}
+    probeDone=false;
+    PROBE.forEach(function(f){
+      var el=pEl(f.k); if(el){ el.value=""; if(el.tagName==="TEXTAREA") el.style.height="84px"; }
+      var c=$("#pc_"+f.k); if(c){ c.textContent="0자 (권장 "+f.min+"자 이상)"; c.className="cnt"; }
+    });
+    $("#probeHelper").textContent="각 칸을 채우면 자동으로 임시저장돼요.";
   });
 
 })();

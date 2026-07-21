@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>드론기초 3차시 · 드론의 기본구조</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --panel2:#16213c; --line:#243456;
+    --ink:#eaf1ff; --sub:#9db0d6; --muted:#6f83ac;
+    --brand:#38bdf8; --brand2:#22d3ee; --good:#34d399; --bad:#fb7185;
+    --gold:#fbbf24; --violet:#a78bfa;
+    --shadow:0 14px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #14264a 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font-family:"Malgun Gothic",system-ui,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent; line-height:1.55;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:16px 14px 90px}
+  h1,h2,h3{margin:0}
+  .btn{cursor:pointer;border:0;border-radius:12px;font-weight:800;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+
+  /* ── 헤더 ── */
+  header.top{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px;
+    background:linear-gradient(120deg,#0e1b38,#122a52);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow)
+  }
+  .logo{font-size:34px;filter:drop-shadow(0 4px 8px rgba(56,189,248,.4))}
+  header.top .t1{font-size:13px;color:var(--brand);font-weight:800;letter-spacing:.5px}
+  header.top .t2{font-size:20px;font-weight:900}
+  header.top .t3{font-size:12px;color:var(--sub);margin-top:2px}
+
+  /* ── 진행 탭 ── */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .step{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:10px 6px;text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden
+  }
+  .step .ico{font-size:22px;display:block}
+  .step .lb{font-size:12px;font-weight:800;color:var(--sub);margin-top:3px}
+  .step.on{background:linear-gradient(135deg,#0ea5e9,#2563eb);border-color:transparent}
+  .step.on .lb{color:#fff}
+  .step.done::after{content:"✓";position:absolute;top:5px;right:7px;color:var(--good);font-weight:900;font-size:13px}
+
+  section.panel{display:none;animation:fade .25s ease}
+  section.panel.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .lead{font-size:14px;color:var(--sub);margin:4px 0 0}
+  .sectitle{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:900;margin-bottom:4px}
+  .sectitle .pill{font-size:11px;background:#0b3a52;color:var(--brand2);padding:3px 9px;border-radius:999px;font-weight:800}
+
+  /* ── 배우기: 드론 도해 ── */
+  .drone-stage{position:relative;background:
+      radial-gradient(400px 200px at 50% 0%, #1a2c52 0%, transparent 70%),
+      var(--panel2);
+    border:1px solid var(--line);border-radius:18px;padding:22px 10px;margin:6px 0 12px}
+  .rotors{display:flex;justify-content:center;gap:60px;margin-bottom:2px}
+  .rotor{font-size:30px;animation:spin 3.5s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .body-row{display:flex;justify-content:center;align-items:center;gap:10px;margin:4px 0}
+  .part-chip{
+    background:linear-gradient(135deg,#17233f,#1d2c4d);border:1px solid var(--line);
+    border-radius:14px;padding:12px 10px;min-width:88px;text-align:center;cursor:pointer;transition:.15s
+  }
+  .part-chip:hover,.part-chip.sel{border-color:var(--brand);box-shadow:0 0 0 3px rgba(56,189,248,.18);transform:translateY(-2px)}
+  .part-chip .e{font-size:26px;display:block}
+  .part-chip .n{font-size:12px;font-weight:800;margin-top:3px}
+  .legs{display:flex;justify-content:center;gap:120px;font-size:24px;margin-top:2px;color:var(--muted)}
+
+  .info-box{background:#0d1830;border:1px dashed var(--line);border-radius:14px;padding:14px;min-height:96px}
+  .info-box .ib-h{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:900}
+  .info-box .ib-tag{font-size:11px;background:#3b2f66;color:#c4b5fd;padding:2px 8px;border-radius:999px;font-weight:800}
+  .info-box .ib-b{font-size:14px;color:var(--sub);margin-top:7px}
+  .info-box .ib-empty{color:var(--muted);font-size:13px;display:flex;align-items:center;height:70px;justify-content:center}
+  .learn-progress{font-size:12px;color:var(--muted);margin-top:10px;text-align:right}
+
+  /* ── 게임 공통 HUD ── */
+  .hud{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .stat{flex:1;min-width:78px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;text-align:center}
+  .stat .v{font-size:20px;font-weight:900}
+  .stat .k{font-size:11px;color:var(--muted);font-weight:700}
+  .stat.score .v{color:var(--gold)}
+  .stat.streak .v{color:var(--violet)}
+
+  /* ── 조립 게임 ── */
+  .assemble-target{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+  .slot{
+    background:#0d1830;border:2px dashed var(--line);border-radius:14px;padding:12px;min-height:70px;
+    display:flex;flex-direction:column;justify-content:center;cursor:pointer;transition:.15s;text-align:center
+  }
+  .slot .role{font-size:12.5px;color:var(--sub);font-weight:700}
+  .slot .hint{font-size:11px;color:var(--muted);margin-top:3px}
+  .slot.ready{border-color:var(--brand);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+  .slot.filled{border-style:solid;border-color:var(--good);background:linear-gradient(135deg,#0f2f27,#123a2d)}
+  .slot.filled .role{color:#fff}
+  .slot .placed{font-size:15px;font-weight:900;margin-bottom:2px}
+  .slot .placed .pe{font-size:20px}
+  .slot.wrong{animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  .tray{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+  .piece{
+    background:linear-gradient(135deg,#1c2b4d,#22335c);border:1px solid var(--line);border-radius:14px;
+    padding:10px 12px;text-align:center;cursor:pointer;transition:.15s;min-width:92px
+  }
+  .piece:hover{transform:translateY(-2px);border-color:var(--brand)}
+  .piece.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(251,191,36,.25);transform:translateY(-3px) scale(1.03)}
+  .piece.used{opacity:.28;pointer-events:none;filter:grayscale(1)}
+  .piece .pe{font-size:24px;display:block}
+  .piece .pn{font-size:12.5px;font-weight:800;margin-top:2px}
+  .helper{font-size:12.5px;color:var(--muted);text-align:center;margin:10px 0 4px;min-height:18px}
+
+  /* ── 센서 매칭 ── */
+  .match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mcol{display:flex;flex-direction:column;gap:8px}
+  .mhead{font-size:12px;font-weight:800;color:var(--muted);text-align:center;margin-bottom:2px}
+  .mitem{
+    background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 8px;
+    cursor:pointer;transition:.15s;font-size:13px;font-weight:700;text-align:center
+  }
+  .mitem .me{font-size:20px;display:block}
+  .mitem.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(251,191,36,.22)}
+  .mitem.matched{opacity:.4;pointer-events:none;border-color:var(--good)}
+  .mitem.badflash{animation:shake .35s}
+
+  /* ── 학습지 ── */
+  .q{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .q .qh{font-size:14.5px;font-weight:800;margin-bottom:10px}
+  .q .qh b{color:var(--brand)}
+  .opts{display:grid;gap:8px}
+  .opt{
+    background:#0d1830;border:1px solid var(--line);border-radius:11px;padding:11px 12px;
+    cursor:pointer;font-size:14px;transition:.12s;display:flex;gap:9px;align-items:center
+  }
+  .opt .mk{width:22px;height:22px;border-radius:50%;border:2px solid var(--muted);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--muted)}
+  .opt:hover{border-color:var(--brand)}
+  .opt.sel{border-color:var(--brand);background:#10233f}
+  .opt.sel .mk{border-color:var(--brand);color:var(--brand)}
+  .opt.correct{border-color:var(--good);background:#0f2f27}
+  .opt.correct .mk{border-color:var(--good);background:var(--good);color:#04231a}
+  .opt.wrong{border-color:var(--bad);background:#331722}
+  .opt.wrong .mk{border-color:var(--bad);color:var(--bad)}
+  .graded .opt{pointer-events:none}
+
+  .bigbtn{display:block;width:100%;padding:15px;font-size:16px;background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;margin-top:6px}
+  .bigbtn.gold{background:linear-gradient(135deg,#f59e0b,#f43f5e)}
+  .bigbtn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--ink)}
+  .bigbtn:disabled{opacity:.5;cursor:default}
+
+  .result-banner{text-align:center;padding:18px;border-radius:16px;margin-bottom:14px;display:none}
+  .result-banner.show{display:block;animation:pop .4s}
+  @keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+  .result-banner .big{font-size:40px;font-weight:900}
+  .result-banner .sm{font-size:14px;color:var(--sub)}
+
+  .nav-next{display:flex;gap:10px;margin-top:6px}
+  .nav-next .btn{flex:1;padding:13px;font-size:14px}
+
+  .toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(30px);
+    background:#0c1830;border:1px solid var(--brand);color:var(--ink);padding:11px 18px;border-radius:999px;
+    font-weight:800;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.25s;z-index:99
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.good{border-color:var(--good)} .toast.bad{border-color:var(--bad)}
+
+  .foot{text-align:center;color:var(--muted);font-size:12px;margin-top:18px}
+  .confetti{position:fixed;top:-10px;font-size:18px;pointer-events:none;z-index:98;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.9}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">🚁</div>
+    <div>
+      <div class="t1">드론기초 · 3차시</div>
+      <div class="t2">드론의 기본구조</div>
+      <div class="t3">배우기 → 조립 → 센서 → 학습지 순서로 클리어!</div>
+    </div>
+  </header>
+
+  <div class="steps">
+    <div class="step on" data-go="learn"><span class="ico">📖</span><span class="lb">배우기</span></div>
+    <div class="step" data-go="build"><span class="ico">🛠️</span><span class="lb">조립게임</span></div>
+    <div class="step" data-go="sensor"><span class="ico">🎯</span><span class="lb">센서게임</span></div>
+    <div class="step" data-go="quiz"><span class="ico">✍️</span><span class="lb">학습지</span></div>
+  </div>
+
+  <!-- ══════════ 1. 배우기 ══════════ -->
+  <section class="panel show" id="p-learn">
+    <div class="card">
+      <div class="sectitle">📖 배우기 <span class="pill">먼저 정답부터</span></div>
+      <p class="lead">부품을 눌러 어디에 있고 무슨 일을 하는지 확인하세요. 5개를 모두 열면 조립게임이 열립니다.</p>
+
+      <div class="drone-stage">
+        <div class="rotors"><span class="rotor">🌀</span><span class="rotor">🌀</span></div>
+        <div class="body-row">
+          <div class="part-chip" data-part="motor"><span class="e">🛞</span><span class="n">모터·프로펠러</span></div>
+          <div class="part-chip" data-part="fc"><span class="e">🧠</span><span class="n">비행제어장치</span></div>
+          <div class="part-chip" data-part="esc"><span class="e">⚡</span><span class="n">변속기(ESC)</span></div>
+        </div>
+        <div class="body-row">
+          <div class="part-chip" data-part="frame"><span class="e">🔲</span><span class="n">프레임</span></div>
+          <div class="part-chip" data-part="landing"><span class="e">🦵</span><span class="n">착륙장치</span></div>
+        </div>
+        <div class="rotors"><span class="rotor">🌀</span><span class="rotor">🌀</span></div>
+        <div class="legs"><span>▚</span><span>▞</span></div>
+      </div>
+
+      <div class="info-box" id="learnInfo">
+        <div class="ib-empty">위 부품을 눌러보세요 👆</div>
+      </div>
+      <div class="learn-progress" id="learnProg">0 / 5 확인함</div>
+    </div>
+    <div class="nav-next">
+      <button class="btn bigbtn" data-go="build" id="toBuild" disabled>🛠️ 조립게임 시작 (부품 5개 모두 확인 후)</button>
+    </div>
+  </section>
+
+  <!-- ══════════ 2. 조립 게임 ══════════ -->
+  <section class="panel" id="p-build">
+    <div class="card">
+      <div class="sectitle">🛠️ 드론 조립하기 <span class="pill">탭 → 배치</span></div>
+      <p class="lead">아래 부품을 하나 고른 뒤, 알맞은 자리를 누르세요. 연속으로 맞히면 콤보 보너스!</p>
+      <div class="hud">
+        <div class="stat score"><div class="v" id="bScore">0</div><div class="k">점수</div></div>
+        <div class="stat streak"><div class="v" id="bStreak">0</div><div class="k">콤보</div></div>
+        <div class="stat"><div class="v" id="bDone">0/5</div><div class="k">장착</div></div>
+      </div>
+
+      <div class="assemble-target" id="slots"></div>
+      <div class="helper" id="buildHelper">먼저 부품을 하나 고르세요.</div>
+      <div class="tray" id="tray"></div>
+
+      <div class="result-banner" id="buildBanner">
+        <div class="big">🎉</div>
+        <div class="sm" id="buildBannerTxt"></div>
+      </div>
+    </div>
+    <div class="nav-next">
+      <button class="btn bigbtn ghost" data-go="learn">← 배우기</button>
+      <button class="btn bigbtn" data-go="sensor" id="toSensor" disabled>🎯 센서게임 →</button>
+    </div>
+  </section>
+
+  <!-- ══════════ 3. 센서 매칭 ══════════ -->
+  <section class="panel" id="p-sensor">
+    <div class="card">
+      <div class="sectitle">🎯 센서 역할 맞추기 <span class="pill">왼쪽↔오른쪽</span></div>
+      <p class="lead">FC 안의 센서들은 각자 다른 정보를 잰다! 센서와 역할을 연결하세요.</p>
+      <div class="hud">
+        <div class="stat score"><div class="v" id="sScore">0</div><div class="k">점수</div></div>
+        <div class="stat"><div class="v" id="sDone">0/5</div><div class="k">연결</div></div>
+      </div>
+      <div class="match-wrap">
+        <div class="mcol"><div class="mhead">센서</div><div id="sensorCol"></div></div>
+        <div class="mcol"><div class="mhead">하는 일</div><div id="roleCol"></div></div>
+      </div>
+      <div class="helper" id="sensorHelper">센서를 하나 누른 뒤, 하는 일을 누르세요.</div>
+      <div class="result-banner" id="sensorBanner"><div class="big">🛰️</div><div class="sm" id="sensorBannerTxt"></div></div>
+    </div>
+    <div class="nav-next">
+      <button class="btn bigbtn ghost" data-go="build">← 조립</button>
+      <button class="btn bigbtn" data-go="quiz" id="toQuiz" disabled>✍️ 학습지 →</button>
+    </div>
+  </section>
+
+  <!-- ══════════ 4. 학습지 ══════════ -->
+  <section class="panel" id="p-quiz">
+    <div class="card">
+      <div class="sectitle">✍️ 학습지 (과제) <span class="pill">자동 채점</span></div>
+      <p class="lead">12문제를 풀고 <b>채점</b>을 누르세요. 선생님께 결과를 제출할 수 있습니다.</p>
+
+      <div class="result-banner" id="quizBanner">
+        <div class="big" id="quizScore">0점</div>
+        <div class="sm" id="quizSub"></div>
+      </div>
+
+      <div id="quizList"></div>
+
+      <button class="btn bigbtn gold" id="gradeBtn">📝 채점하기</button>
+      <div class="nav-next" id="afterGrade" style="display:none">
+        <button class="btn bigbtn ghost" id="retryBtn">🔄 다시 풀기</button>
+        <button class="btn bigbtn" id="submitBtn" style="display:none">📤 선생님께 제출</button>
+      </div>
+    </div>
+    <div class="nav-next">
+      <button class="btn bigbtn ghost" data-go="sensor">← 센서게임</button>
+    </div>
+    <div class="foot">드론기초 학습도구 · 3차시 드론의 기본구조</div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 결과 제출 위젯: ?rc=<선생님 시트주소> 링크로 열면 제출 버튼이 나타납니다 -->
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론기초 3차시 기본구조"></script>
+
+<script>
+(function(){
+  "use strict";
+  var $=function(s,r){return (r||document).querySelector(s)};
+  var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+  var startTime=Date.now();
+
+  /* ───────── 데이터 ───────── */
+  var PARTS={
+    frame:{e:"🔲",n:"프레임",tag:"뼈대",role:"드론의 <b>뼈대</b>에 해당하는 부분. 모든 부품이 여기에 장착됩니다."},
+    motor:{e:"🛞",n:"모터·프로펠러",tag:"추진",role:"변속기·모터·프로펠러가 조합되어 <b>양력</b>을 일으키는 <b>추진(동력) 장치</b>입니다."},
+    esc:{e:"⚡",n:"변속기(ESC)",tag:"전력제어",role:"전자변속기로서 모터의 <b>회전 속도</b>를 제어하는 전력 제어 전자회로. 매 순간 빠르게 회전속도를 바꿉니다."},
+    fc:{e:"🧠",n:"비행제어장치(FC)",tag:"두뇌",role:"드론의 <b>두뇌</b>. CPU와 각종 센서가 내장되어 명령·센서 정보를 처리하고 각 장치를 <b>제어</b>합니다."},
+    landing:{e:"🦵",n:"착륙장치",tag:"다리",role:"착륙할 때 드론과 <b>지면</b>이 맞닿는 <b>다리(랜딩기어)</b>입니다."}
+  };
+  var PART_KEYS=["frame","motor","esc","fc","landing"];
+
+  var SENSORS=[
+    {id:"baro",e:"🌡️",n:"기압 센서",role:"고도 측정 (기압 변화로)"},
+    {id:"dist",e:"📡",n:"거리 측정 센서",role:"초음파·레이저로 거리 측정(실내·터널)"},
+    {id:"gps", e:"🛰️",n:"GPS(위치)",role:"위성 삼각측량으로 위치 파악"},
+    {id:"gyro",e:"🎯",n:"자이로·가속도",role:"기울기·회전으로 자세 파악"},
+    {id:"mag", e:"🧭",n:"지자기 센서",role:"지구 자기장으로 진행 방향 인식"}
+  ];
+
+  var QUIZ=[
+    {q:"드론의 <b>뼈대</b>에 해당하는 부분은?",o:["프레임","변속기(ESC)","착륙장치","프로펠러"],a:0},
+    {q:"변속기·모터·프로펠러가 조합되어 <b>양력을 일으키는 추진 장치</b>는?",o:["착륙장치","모터와 프로펠러","비행제어장치","프레임"],a:1},
+    {q:"변속기(ESC)가 제어하는 것은?",o:["배터리 용량","모터의 회전 속도","프로펠러 재질","GPS 신호"],a:1},
+    {q:"드론의 <b>두뇌</b>에 해당하며 명령·센서정보를 처리하는 장치는?",o:["변속기(ESC)","프레임","비행제어장치(FC)","착륙장치"],a:2},
+    {q:"착륙 시 드론과 <b>지면이 맞닿는</b> 부분은?",o:["프레임","착륙장치","모터","FC"],a:1},
+    {q:"비행제어장치(FC)에 내장된 중앙 처리 장치는?",o:["ESC","CPU","GPS","배터리"],a:1},
+    {q:"FC가 자세를 제어할 때 각 모터의 회전속도를 조절하려고 신호를 보내는 곳은?",o:["변속기(ESC)","수신기","프레임","착륙장치"],a:0},
+    {q:"드론의 <b>고도</b>를 측정하는 센서는?",o:["지자기 센서","기압 센서","GPS","자이로 센서"],a:1},
+    {q:"초음파나 레이저가 반사되어 돌아오는 시간으로 <b>물체와의 거리</b>를 재는 센서는?",o:["거리 측정 센서","기압 센서","지자기 센서","가속도 센서"],a:0},
+    {q:"GPS의 위치 측정이 기반하고 있는 방식은?",o:["삼각측량","기압 변화","자기장 측정","도플러 효과"],a:0},
+    {q:"드론의 <b>기울기·회전(자세)</b>을 측정하여 비행을 바로잡는 센서는?",o:["기압 센서","GPS","자이로 센서","거리 센서"],a:2},
+    {q:"지구가 방출하는 자기장을 감지해 드론의 <b>진행 방향</b>을 인식하게 하는 센서는?",o:["지자기 센서","기압 센서","GPS","자이로 센서"],a:0}
+  ];
+
+  /* ───────── 공통 UI ───────── */
+  var toastT;
+  function toast(msg,kind){
+    var t=$("#toast"); t.textContent=msg; t.className="toast show"+(kind?(" "+kind):"");
+    clearTimeout(toastT); toastT=setTimeout(function(){t.className="toast"},1300);
+  }
+  function confetti(){
+    var em=["🎉","✨","🎊","⭐","🚁","💙"];
+    for(var i=0;i<26;i++){(function(i){
+      var c=document.createElement("div"); c.className="confetti";
+      c.textContent=em[i%em.length];
+      c.style.left=(Math.random()*100)+"vw";
+      c.style.animationDuration=(1.6+Math.random()*1.4)+"s";
+      c.style.fontSize=(14+Math.random()*16)+"px";
+      document.body.appendChild(c);
+      setTimeout(function(){c.remove()},3200);
+    })(i);}
+  }
+  function go(name){
+    $$(".panel").forEach(function(p){p.classList.remove("show")});
+    $("#p-"+name).classList.add("show");
+    $$(".step").forEach(function(s){s.classList.toggle("on",s.dataset.go===name)});
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  $$("[data-go]").forEach(function(el){
+    el.addEventListener("click",function(){
+      if(el.disabled) {toast("앞 단계를 먼저 완료하세요","bad");return;}
+      go(el.dataset.go);
+    });
+  });
+  function markDone(name){ $$(".step").forEach(function(s){ if(s.dataset.go===name) s.classList.add("done"); }); }
+
+  /* ───────── 1. 배우기 ───────── */
+  var seen={};
+  $$(".part-chip").forEach(function(chip){
+    chip.addEventListener("click",function(){
+      $$(".part-chip").forEach(function(c){c.classList.remove("sel")});
+      chip.classList.add("sel");
+      var p=PARTS[chip.dataset.part];
+      $("#learnInfo").innerHTML=
+        '<div class="ib-h">'+p.e+' '+p.n+' <span class="ib-tag">'+p.tag+'</span></div>'+
+        '<div class="ib-b">'+p.role+'</div>';
+      seen[chip.dataset.part]=true;
+      var n=Object.keys(seen).length;
+      $("#learnProg").textContent=n+" / 5 확인함";
+      if(n>=5){ $("#toBuild").disabled=false; $("#toBuild").textContent="🛠️ 조립게임 시작!"; markDone("learn"); }
+    });
+  });
+
+  /* ───────── 2. 조립 게임 ───────── */
+  var SLOTS=[
+    {key:"frame",role:"모든 부품이 붙는 뼈대",hint:"드론의 골격"},
+    {key:"motor",role:"양력을 내는 추진 장치",hint:"돌아가며 뜬다"},
+    {key:"esc",role:"모터 회전속도를 제어",hint:"전력 제어 회로"},
+    {key:"fc",role:"명령·센서 처리 두뇌",hint:"CPU 내장"},
+    {key:"landing",role:"지면에 닿는 다리",hint:"착륙 시"}
+  ];
+  var bScore=0,bStreak=0,bDone=0,selPiece=null,slotFilled={};
+  function renderBuild(){
+    var sc=$("#slots"); sc.innerHTML="";
+    SLOTS.forEach(function(s){
+      var d=document.createElement("div");
+      d.className="slot"; d.dataset.key=s.key;
+      d.innerHTML='<div class="role">'+s.role+'</div><div class="hint">'+s.hint+'</div>';
+      d.addEventListener("click",function(){ placePiece(d,s.key); });
+      sc.appendChild(d);
+    });
+    var tr=$("#tray"); tr.innerHTML="";
+    // 섞기
+    var order=PART_KEYS.slice();
+    for(var i=order.length-1;i>0;i--){var j=(i*7+3)%(i+1);var t=order[i];order[i]=order[j];order[j]=t;}
+    order.forEach(function(k){
+      var p=PARTS[k];
+      var d=document.createElement("div");
+      d.className="piece"; d.dataset.key=k;
+      d.innerHTML='<span class="pe">'+p.e+'</span><span class="pn">'+p.n+'</span>';
+      d.addEventListener("click",function(){
+        if(d.classList.contains("used"))return;
+        $$(".piece").forEach(function(x){x.classList.remove("sel")});
+        d.classList.add("sel"); selPiece=k;
+        $("#buildHelper").textContent="'"+p.n+"' 선택됨 → 알맞은 자리를 누르세요";
+      });
+      tr.appendChild(d);
+    });
+  }
+  function placePiece(slotEl,slotKey){
+    if(slotFilled[slotKey])return;
+    if(!selPiece){ toast("먼저 부품을 고르세요","bad"); return; }
+    if(selPiece===slotKey){
+      // 정답
+      slotFilled[slotKey]=true; bDone++;
+      bStreak++; var gain=10+(bStreak>=2?bStreak*2:0);
+      bScore+=gain;
+      var p=PARTS[slotKey];
+      slotEl.classList.add("filled");
+      slotEl.innerHTML='<div class="placed"><span class="pe">'+p.e+'</span> '+p.n+'</div><div class="role">'+SLOTS.filter(function(s){return s.key===slotKey})[0].role+'</div>';
+      $('.piece[data-key="'+slotKey+'"]').classList.add("used");
+      $$(".piece").forEach(function(x){x.classList.remove("sel")}); selPiece=null;
+      $("#bScore").textContent=bScore; $("#bStreak").textContent=bStreak;
+      $("#bDone").textContent=bDone+"/5";
+      toast(bStreak>=2?("콤보 x"+bStreak+"! +"+gain):("정답! +"+gain),"good");
+      $("#buildHelper").textContent="좋아요! 다음 부품을 고르세요";
+      if(bDone>=5) finishBuild();
+    }else{
+      // 오답
+      bStreak=0; $("#bStreak").textContent=0;
+      slotEl.classList.add("wrong");
+      setTimeout(function(){slotEl.classList.remove("wrong")},400);
+      toast("여긴 아니에요! 역할을 다시 읽어보세요","bad");
+    }
+  }
+  function finishBuild(){
+    markDone("build"); $("#toSensor").disabled=false;
+    confetti();
+    $("#buildBannerTxt").textContent="드론 조립 완성! 획득 점수 "+bScore+"점";
+    $("#buildBanner").classList.add("show");
+    $("#buildHelper").textContent="완성! 아래 센서게임으로 넘어가세요 →";
+  }
+  renderBuild();
+
+  /* ───────── 3. 센서 매칭 ───────── */
+  var sScore=0,sDone=0,selSensor=null,matched={};
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=(i*5+2)%(i+1);var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function renderSensor(){
+    var sc=$("#sensorCol"); sc.innerHTML="";
+    SENSORS.forEach(function(s){
+      var d=document.createElement("div");
+      d.className="mitem"; d.dataset.id=s.id;
+      d.innerHTML='<span class="me">'+s.e+'</span>'+s.n;
+      d.addEventListener("click",function(){
+        if(d.classList.contains("matched"))return;
+        $$("#sensorCol .mitem").forEach(function(x){x.classList.remove("sel")});
+        d.classList.add("sel"); selSensor=s.id;
+        $("#sensorHelper").textContent="'"+s.n+"'의 하는 일을 오른쪽에서 고르세요";
+      });
+      sc.appendChild(d);
+    });
+    var rc=$("#roleCol"); rc.innerHTML="";
+    shuffle(SENSORS).forEach(function(s){
+      var d=document.createElement("div");
+      d.className="mitem"; d.dataset.id=s.id;
+      d.textContent=s.role;
+      d.addEventListener("click",function(){
+        if(d.classList.contains("matched"))return;
+        if(!selSensor){ toast("먼저 왼쪽 센서를 고르세요","bad"); return; }
+        if(selSensor===s.id){
+          matched[s.id]=true; sDone++; sScore+=20;
+          $$('#sensorCol .mitem[data-id="'+s.id+'"]').forEach(function(x){x.classList.add("matched");x.classList.remove("sel")});
+          d.classList.add("matched"); selSensor=null;
+          $("#sScore").textContent=sScore; $("#sDone").textContent=sDone+"/5";
+          toast("연결 성공! +20","good");
+          if(sDone>=5) finishSensor();
+        }else{
+          d.classList.add("badflash"); setTimeout(function(){d.classList.remove("badflash")},400);
+          toast("다시 생각해봐요!","bad");
+        }
+      });
+      rc.appendChild(d);
+    });
+  }
+  function finishSensor(){
+    markDone("sensor"); $("#toQuiz").disabled=false; confetti();
+    $("#sensorBannerTxt").textContent="센서 5종 정복! +"+sScore+"점";
+    $("#sensorBanner").classList.add("show");
+    $("#sensorHelper").textContent="완료! 학습지로 넘어가세요 →";
+  }
+  renderSensor();
+
+  /* ───────── 4. 학습지 ───────── */
+  var picked={}, graded=false;
+  function renderQuiz(){
+    var list=$("#quizList"); list.innerHTML="";
+    QUIZ.forEach(function(item,qi){
+      var q=document.createElement("div");
+      q.className="q"; q.dataset.qi=qi;
+      var opts=item.o.map(function(o,oi){
+        var mark=String.fromCharCode(65+oi);
+        return '<div class="opt" data-oi="'+oi+'"><span class="mk">'+mark+'</span><span>'+o+'</span></div>';
+      }).join("");
+      q.innerHTML='<div class="qh"><b>Q'+(qi+1)+'.</b> '+item.q+'</div><div class="opts">'+opts+'</div>';
+      list.appendChild(q);
+      $$(".opt",q).forEach(function(op){
+        op.addEventListener("click",function(){
+          if(graded)return;
+          $$(".opt",q).forEach(function(x){x.classList.remove("sel")});
+          op.classList.add("sel"); picked[qi]=parseInt(op.dataset.oi,10);
+        });
+      });
+    });
+  }
+  renderQuiz();
+
+  $("#gradeBtn").addEventListener("click",function(){
+    var unanswered=[];
+    for(var i=0;i<QUIZ.length;i++){ if(picked[i]===undefined) unanswered.push(i+1); }
+    if(unanswered.length){ toast("아직 안 푼 문제: "+unanswered.join(", "),"bad"); return; }
+    graded=true;
+    var correct=0, wrong=[];
+    $$(".q").forEach(function(q){
+      var qi=parseInt(q.dataset.qi,10); q.classList.add("graded");
+      var ans=QUIZ[qi].a, my=picked[qi];
+      $$(".opt",q).forEach(function(op){
+        var oi=parseInt(op.dataset.oi,10);
+        if(oi===ans) op.classList.add("correct");
+        else if(oi===my) op.classList.add("wrong");
+      });
+      if(my===ans) correct++; else wrong.push(qi+1);
+    });
+    var score=Math.round(correct/QUIZ.length*100);
+    window.__quizResult={score:score,correct:correct,total:QUIZ.length,wrong:wrong,
+      durationSec:Math.round((Date.now()-startTime)/1000)};
+    $("#quizScore").textContent=score+"점";
+    $("#quizSub").textContent=correct+" / "+QUIZ.length+" 정답"+(wrong.length?(" · 틀린 문제: "+wrong.join(", ")):" · 만점! 🎉");
+    $("#quizBanner").classList.add("show");
+    if(score>=80) confetti();
+    $("#gradeBtn").style.display="none";
+    $("#afterGrade").style.display="flex";
+    markDone("quiz");
+    // ?rc= 로 열렸을 때만 제출 버튼 노출
+    if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
+      $("#submitBtn").style.display="block";
+    }
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+
+  $("#retryBtn").addEventListener("click",function(){
+    picked={}; graded=false; startTime=Date.now();
+    $("#quizBanner").classList.remove("show");
+    $("#afterGrade").style.display="none";
+    $("#gradeBtn").style.display="block";
+    renderQuiz();
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+
+  $("#submitBtn").addEventListener("click",function(){
+    var r=window.__quizResult; if(!r)return;
+    ResultCollector.open(r);
+  });
+
+})();
+</script>
+</body>
+</html>

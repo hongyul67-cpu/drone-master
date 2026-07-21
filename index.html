@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>드론 제작 마스터</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --panel2:#16213c; --line:#243456;
+    --ink:#eaf1ff; --sub:#9db0d6; --muted:#6f83ac;
+    --brand:#38bdf8; --brand2:#22d3ee; --good:#34d399; --gold:#fbbf24; --violet:#a78bfa;
+    --shadow:0 14px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:radial-gradient(1200px 600px at 50% -10%, #14264a 0%, var(--bg) 55%) fixed;
+    color:var(--ink);font-family:"Malgun Gothic",system-ui,"Segoe UI",Roboto,sans-serif;line-height:1.55;
+    -webkit-tap-highlight-color:transparent}
+  .wrap{max-width:820px;margin:0 auto;padding:20px 14px 70px}
+  header.top{display:flex;align-items:center;gap:13px;padding:18px;margin-bottom:16px;
+    background:linear-gradient(120deg,#0e1b38,#122a52);border:1px solid var(--line);
+    border-radius:20px;box-shadow:var(--shadow)}
+  .logo{font-size:40px;filter:drop-shadow(0 4px 8px rgba(56,189,248,.4))}
+  .t1{font-size:12.5px;color:var(--brand);font-weight:800;letter-spacing:.5px}
+  .t2{font-size:23px;font-weight:900}
+  .t3{font-size:12.5px;color:var(--sub);margin-top:3px}
+
+  .group{margin-bottom:8px}
+  .gt{font-size:13px;font-weight:900;color:var(--brand2);margin:18px 4px 8px;letter-spacing:.3px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  a.card{display:block;text-decoration:none;color:inherit;background:var(--panel);
+    border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);transition:.15s}
+  a.card:hover{border-color:var(--brand);transform:translateY(-2px)}
+  a.card .ci{font-size:30px}
+  a.card .cn{font-size:16px;font-weight:900;margin-top:6px}
+  a.card .cd{font-size:12.5px;color:var(--sub);margin-top:4px}
+  a.card .tags{margin-top:9px;display:flex;flex-wrap:wrap;gap:5px}
+  a.card .tag{font-size:10.5px;font-weight:800;background:#0b3a52;color:var(--brand2);padding:2px 8px;border-radius:99px}
+  a.card.violet .tag{background:#2e1f57;color:#c4b5fd}
+  a.card.green .tag{background:#0b3a30;color:#6ee7b7}
+
+  .note{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:14px;
+    font-size:12.5px;color:var(--sub);margin-top:18px}
+  .note b{color:var(--gold)}
+  .rcbar{background:#12402f;border:1px solid var(--good);border-radius:12px;padding:10px 13px;
+    font-size:12.5px;color:#a7f3d0;font-weight:700;margin-top:14px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">🚁</div>
+    <div>
+      <div class="t1">항공드론과 · 드론 제작</div>
+      <div class="t2">드론 제작 마스터</div>
+      <div class="t3">배우고 → 게임으로 만들어 보고 → 보고서까지</div>
+    </div>
+  </header>
+
+  <div class="group">
+    <div class="gt">🛠️ 만들기 게임</div>
+    <div class="cards">
+      <a class="card" href="build-sim-pixhawk.html" data-link>
+        <div class="ci">🚁</div>
+        <div class="cn">픽스호크 상용FC 드론</div>
+        <div class="cd">부품 도감 → 프레임·모터 조립 → 픽스호크 결선 → 프로펠러 → 조종기 세팅 → 미션 플래너 보정 → 가상 시험비행</div>
+        <div class="tags"><span class="tag">Ⅳ영역</span><span class="tag">7단계</span><span class="tag">시험비행</span></div>
+      </a>
+      <a class="card green" href="build-sim-arduino.html" data-link>
+        <div class="ci">🛩️</div>
+        <div class="cn">아두이노 나노 드론</div>
+        <div class="cd">부품 도감 → FC 기판 핀 결선 → 3D 출력 설정 → 모터·ESC 조립 → MultiWii 세팅 → ESC 보정·안전 점검</div>
+        <div class="tags"><span class="tag">Ⅲ영역</span><span class="tag">6단계</span><span class="tag">결선표</span></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="gt">📝 보고서</div>
+    <div class="cards">
+      <a class="card violet" href="report.html" data-link>
+        <div class="ci">📝</div>
+        <div class="cn">드론 제작 실습 보고서</div>
+        <div class="cd">게임 기록이 자동으로 들어오고, 자기평가 · 서술형 · 사진까지 채워 인쇄(PDF)하거나 선생님께 제출</div>
+        <div class="tags"><span class="tag">자동 임시저장</span><span class="tag">A4 인쇄</span><span class="tag">사진 첨부</span></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="gt">📖 이론 학습</div>
+    <div class="cards">
+      <a class="card" href="03-drone-structure.html" data-link>
+        <div class="ci">🔧</div>
+        <div class="cn">3차시 · 드론의 구성</div>
+        <div class="cd">프레임 · 송수신기 · 제어부(FC) · 구동부 · 배터리 · 프로펠러 · 페이로드</div>
+        <div class="tags"><span class="tag">Ⅰ영역</span><span class="tag">배우기+게임+학습지</span></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="rcbar" id="rcbar">✅ 선생님 결과 시트에 연결된 링크입니다. 각 도구에 <b>제출 버튼</b>이 나타납니다.</div>
+
+  <div class="note">
+    💡 <b>선생님께</b> — 주소 뒤에 <code>?rc=&lt;내 Apps Script exec 주소&gt;</code>를 붙여 나눠 주면
+    학생이 낸 결과가 선생님 구글 시트로 모입니다. 이 페이지의 카드 링크에도 자동으로 붙습니다.<br>
+    💡 이론 1·2·4·5·6차시는 준비 중입니다.
+  </div>
+
+</div>
+<script>
+(function(){
+  var qs=location.search;
+  if(!qs) return;
+  Array.prototype.slice.call(document.querySelectorAll("a[data-link]")).forEach(function(a){
+    a.setAttribute("href", a.getAttribute("href")+qs);
+  });
+  if(new URLSearchParams(qs).get("rc")) document.getElementById("rcbar").style.display="block";
+})();
+</script>
+</body>
+</html>

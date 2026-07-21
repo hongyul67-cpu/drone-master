@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>드론 만들기 게임 · 아두이노 나노 드론 제작</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --panel2:#16213c; --line:#243456;
+    --ink:#eaf1ff; --sub:#9db0d6; --muted:#6f83ac;
+    --brand:#34d399; --brand2:#6ee7b7; --good:#34d399; --bad:#fb7185;
+    --gold:#fbbf24; --violet:#a78bfa;
+    --shadow:0 14px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #123c34 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font-family:"Malgun Gothic",system-ui,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent; line-height:1.55;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:16px 14px 90px}
+  h1,h2,h3{margin:0}
+  .btn{cursor:pointer;border:0;border-radius:12px;font-weight:800;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+
+  header.top{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px;
+    background:linear-gradient(120deg,#0f2e28,#12503f);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow)
+  }
+  .logo{font-size:34px;filter:drop-shadow(0 4px 8px rgba(52,211,153,.4))}
+  header.top .t1{font-size:13px;color:var(--brand);font-weight:800;letter-spacing:.5px}
+  header.top .t2{font-size:20px;font-weight:900}
+  header.top .t3{font-size:12px;color:var(--sub);margin-top:2px}
+
+  .steps{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:9px 3px;text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+  .step .ico{font-size:19px;display:block}
+  .step .lb{font-size:10.5px;font-weight:800;color:var(--sub);margin-top:2px;line-height:1.2}
+  .step.on{background:linear-gradient(135deg,#10b981,#0d9488);border-color:transparent}
+  .step.on .lb{color:#fff}
+  .step.done::after{content:"✓";position:absolute;top:3px;right:5px;color:var(--good);font-weight:900;font-size:12px}
+  .step.locked{opacity:.45}
+
+  section.panel{display:none;animation:fade .25s ease}
+  section.panel.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .lead{font-size:14px;color:var(--sub);margin:4px 0 0}
+  .sectitle{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:900;margin-bottom:4px;flex-wrap:wrap}
+  .sectitle .pill{font-size:11px;background:#0b3a30;color:var(--brand2);padding:3px 9px;border-radius:999px;font-weight:800}
+  .hint{background:#0d1a33;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--sub);margin-top:12px}
+  .hint b{color:var(--gold)}
+  .warn{background:#3a2f10;border:1px solid #7c5b12;border-radius:12px;padding:10px 12px;font-size:12.5px;color:#fde68a;margin-top:10px}
+
+  .parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+  .part{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;transition:.15s;text-align:center}
+  .part:hover{border-color:var(--brand)}
+  .part .pico{font-size:30px}
+  .part .pname{font-size:13px;font-weight:900;margin-top:4px}
+  .part.seen{border-color:var(--good);background:#132a2c}
+  .part.seen::after{content:" ✓";color:var(--good);font-weight:900}
+  .detail{margin-top:12px;background:#0d1a33;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:96px}
+  .detail h4{margin:0 0 6px;font-size:16px;color:var(--brand2)}
+  .detail ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--sub)}
+  .detail li{margin-bottom:4px}
+
+  .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .opt{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:9px 13px;border-radius:11px;font-size:13px;font-weight:700}
+  .opt:hover{border-color:var(--brand)}
+  .opt.sel{background:linear-gradient(135deg,#10b981,#0d9488);border-color:transparent;color:#fff}
+  .opt.used{opacity:.35;pointer-events:none}
+
+  /* 결선 신호 목록 */
+  .sigs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:10px}
+  .sig{display:flex;align-items:center;gap:8px;background:#0d1a33;border:1px solid var(--line);border-radius:11px;padding:9px 11px;cursor:pointer;font-size:12.5px}
+  .sig:hover{border-color:var(--brand)}
+  .sig.sel{border-color:var(--brand);background:#123c34}
+  .sig.ok{border-color:var(--good);background:#12402f}
+  .sig .sn{font-weight:800;flex:1}
+  .sig .sp{font-size:12px;color:var(--good);font-weight:900}
+
+  /* 핀보드 */
+  .board{background:#0d1a33;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px}
+  .board .bt{text-align:center;font-size:12px;font-weight:900;color:var(--brand2);margin-bottom:10px}
+  .pins{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:7px}
+  .pin{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 4px;font-size:13px;font-weight:900}
+  .pin:hover{border-color:var(--brand)}
+  .pin.done{opacity:.3;pointer-events:none}
+  .shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  /* 설정 선택 */
+  .setrows{display:grid;gap:10px;margin-top:12px}
+  .setrow{background:#0d1a33;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .setrow.ok{border-color:var(--good);background:#12402f}
+  .setrow .sl{font-size:13px;font-weight:900;color:var(--brand2);margin-bottom:7px}
+  .setrow .sc{display:flex;flex-wrap:wrap;gap:6px}
+  .setrow .sc .btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:7px 11px;font-size:12.5px}
+  .setrow .sc .btn:hover{border-color:var(--brand)}
+  .setrow .sc .btn.pick{background:linear-gradient(135deg,#10b981,#0d9488);border-color:transparent;color:#fff}
+
+  /* 쿼드 */
+  .quad{position:relative;width:100%;max-width:320px;aspect-ratio:1;margin:14px auto;
+     background:radial-gradient(circle at 50% 50%, #14453a 0%, #0d1a33 70%);border:1px solid var(--line);border-radius:20px}
+  .quad .body{position:absolute;left:50%;top:50%;width:24%;height:24%;transform:translate(-50%,-50%);
+     background:#175e4b;border:1px solid var(--brand);border-radius:8px;display:grid;place-items:center;font-size:10px;font-weight:900;color:var(--brand2);text-align:center;line-height:1.2}
+  .slot{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;
+        background:var(--panel2);border:2px dashed var(--line);display:grid;place-items:center;
+        font-size:11px;font-weight:900;color:var(--muted);cursor:pointer;text-align:center;line-height:1.15}
+  .slot:hover{border-color:var(--brand)}
+  .slot.ok{border-style:solid;border-color:var(--good);background:#12402f;color:#a7f3d0}
+  .slot .lab{font-size:10px;color:var(--muted);display:block;font-weight:700}
+  .slot.ok .lab{color:#6ee7b7}
+  .p-fl{left:22%;top:22%} .p-fr{left:78%;top:22%} .p-rl{left:22%;top:78%} .p-rr{left:78%;top:78%}
+  .frontmark{position:absolute;left:50%;top:6px;transform:translateX(-50%);font-size:11px;color:var(--gold);font-weight:900}
+
+  /* 순서 */
+  .seq{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .seqslot{display:flex;align-items:center;gap:10px;background:#0d1a33;border:1px solid var(--line);border-radius:11px;padding:9px 12px;font-size:13.5px;min-height:44px}
+  .seqslot .no{width:24px;height:24px;flex:none;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-size:12px;font-weight:900;color:var(--sub)}
+  .seqslot.filled .no{background:linear-gradient(135deg,#10b981,#0d9488);color:#fff}
+
+  /* 매칭 */
+  .rows{display:grid;gap:8px;margin-top:10px}
+  .row{display:flex;align-items:center;gap:10px;background:#0d1a33;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13px;cursor:pointer}
+  .row .rk{font-weight:900;color:var(--brand2);min-width:110px}
+  .row .rv{flex:1;color:var(--muted)}
+  .row.sel{border-color:var(--brand);background:#123c34}
+  .row.ok{border-color:var(--good);background:#12402f}
+  .row.ok .rv{color:#a7f3d0;font-weight:800}
+
+  /* 체크리스트 */
+  .checks{display:grid;gap:7px;margin-top:10px}
+  .chk{display:flex;gap:10px;align-items:flex-start;background:#0d1a33;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13px;cursor:pointer}
+  .chk .box{width:22px;height:22px;flex:none;border-radius:6px;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;color:transparent}
+  .chk.on{border-color:var(--good);background:#12402f}
+  .chk.on .box{background:var(--good);border-color:var(--good);color:#06281c}
+
+  .bar{height:9px;background:#0d1a33;border-radius:99px;overflow:hidden;margin-top:12px;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#10b981,#6ee7b7);width:0;transition:.3s}
+  .nav{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .bigbtn{flex:1;min-width:150px;background:linear-gradient(135deg,#10b981,#0d9488);color:#fff;padding:14px;font-size:15px}
+  .bigbtn:disabled{opacity:.4;cursor:not-allowed}
+  .bigbtn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--sub);flex:0 0 auto;min-width:100px}
+  .msg{margin-top:10px;font-size:13.5px;font-weight:800;min-height:20px}
+  .msg.ok{color:var(--good)} .msg.no{color:var(--bad)}
+
+  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;text-align:center}
+  .score div{background:#0d1a33;border:1px solid var(--line);border-radius:14px;padding:14px 6px}
+  .score b{display:block;font-size:26px;color:var(--brand2)}
+  .score span{font-size:12px;color:var(--sub)}
+  table.log{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+  table.log th,table.log td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+  table.log th{color:var(--sub);font-size:12px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:900}
+  .badge.g{background:#12402f;color:#a7f3d0} .badge.b{background:#43121f;color:#fecdd3}
+  code{background:#0b1428;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px;color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">🛩️</div>
+    <div>
+      <div class="t1">드론 제작 · Ⅲ영역</div>
+      <div class="t2">드론 만들기 게임 — 아두이노 나노 드론</div>
+      <div class="t3">부품 → 핀 결선 → 3D 출력 → 조립 → MultiWii → 시동·안전</div>
+    </div>
+  </header>
+
+  <div class="steps" id="steps">
+    <div class="step on" data-go="learn"    ><span class="ico">📖</span><span class="lb">배우기</span></div>
+    <div class="step locked" data-go="pin"  ><span class="ico">📌</span><span class="lb">핀 결선</span></div>
+    <div class="step locked" data-go="print"><span class="ico">🖨️</span><span class="lb">3D 출력</span></div>
+    <div class="step locked" data-go="build"><span class="ico">🔩</span><span class="lb">조립</span></div>
+    <div class="step locked" data-go="sw"   ><span class="ico">💻</span><span class="lb">MultiWii</span></div>
+    <div class="step locked" data-go="safe" ><span class="ico">🛡️</span><span class="lb">시동·안전</span></div>
+  </div>
+
+  <!-- 1. 배우기 -->
+  <section class="panel show" id="p-learn">
+    <div class="card">
+      <div class="sectitle">📖 부품 도감 <span class="pill">먼저 정답부터</span></div>
+      <p class="lead">아두이노 나노로 드론의 <b>두뇌(FC)</b>를 직접 만든다. 부품 카드 <b>10개를 모두</b> 눌러 보자.</p>
+      <div class="parts" id="parts"></div>
+      <div class="detail" id="partDetail">
+        <h4>👆 부품을 눌러보자</h4>
+        <p style="margin:0;font-size:13.5px;color:var(--sub)">각 부품이 무엇이고 왜 필요한지 나온다.</p>
+      </div>
+      <div class="bar"><i id="learnBar"></i></div>
+      <div class="nav"><button class="btn bigbtn" data-go="pin" id="toPin" disabled>📌 핀 결선 시작 (부품 0/10)</button></div>
+    </div>
+  </section>
+
+  <!-- 2. 핀 결선 -->
+  <section class="panel" id="p-pin">
+    <div class="card">
+      <div class="sectitle">📌 아두이노 나노 FC 결선표 <span class="pill">신호 탭 → 핀 탭</span></div>
+      <p class="lead">위에서 연결할 <b>신호</b>를 고르고, 아래 보드에서 꽂을 <b>핀</b>을 누르자. 13개를 모두 연결하면 FC 기판 완성!</p>
+      <div class="sigs" id="sigs"></div>
+      <div class="board">
+        <div class="bt">— Arduino Nano —</div>
+        <div class="pins" id="pins"></div>
+      </div>
+      <div class="msg" id="pinMsg"></div>
+      <div class="warn">⚠️ 교과서 89쪽 표에는 <code>SDA=A5, SCL=A4</code>로 적혀 있지만, 88쪽 설명과 아두이노 나노의 실제 핀 배치는
+        <b>A4 = SDA(데이터), A5 = SCL(클럭)</b>이다. 이 게임은 실제 배치를 정답으로 한다.</div>
+      <div class="hint">💡 자이로 센서는 <b>I2C 통신</b>으로 아두이노와 대화한다. SDA는 데이터가 오가는 선, SCL은 박자를 맞춰 주는 시계 선이다.<br>
+      💡 3×7cm 240홀 <b>만능 기판</b>에 헤더 핀을 납땜해 위 결선대로 뒷면에서 전선을 연결한다. <b>쇼트가 나지 않게</b> 주의!</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="learn">← 배우기</button>
+        <button class="btn bigbtn" data-go="print" id="toPrint" disabled>🖨️ 3D 출력 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 3D 출력 -->
+  <section class="panel" id="p-print">
+    <div class="card">
+      <div class="sectitle">🖨️ 프레임 출력 설정 <span class="pill">슬라이싱 옵션</span></div>
+      <p class="lead">직접 모델링한 상판·하판·암(Arm)을 3D 프린터로 뽑는다. 교과서 권장 설정으로 맞춰 보자.</p>
+      <div class="setrows" id="setrows"></div>
+      <div class="msg" id="printMsg"></div>
+      <div class="hint">💡 출력 방향은 <b>바닥에 닿는 면적이 가장 넓게</b> 놓는다. 슬라이싱 후 가상 적층으로 형상·시간을 확인하고 <b>G코드</b>로 저장한다.<br>
+      💡 프레임 설계 포인트 — 나사 구멍 지름 <b>2.5mm</b>, 상판·하판을 나누고 나사로 결합, 원형 패턴으로 4개 복사, 강도는 유지하면서 <b>빈 공간</b>으로 경량화.<br>
+      💡 3D 프린터가 없어도 괜찮다. 나무젓가락·아이스크림 막대·고무줄로도 훌륭한 드론을 만들 수 있다.</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="pin">← 핀 결선</button>
+        <button class="btn bigbtn" data-go="build" id="toBuild" disabled>🔩 조립 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 조립 -->
+  <section class="panel" id="p-build">
+    <div class="card">
+      <div class="sectitle">🔩 ① 모터 · ESC 결선 <span class="pill">직결 / 교차</span></div>
+      <p class="lead">아두이노(MultiWii) 드론은 <b>1·3번이 시계 방향(CW)</b>, <b>2·4번이 반시계 방향(CCW)</b>이다.<br>
+      CW 모터는 ESC 삼선을 <b>그대로</b> 연결하고, CCW 모터는 <b>가운데 선만 그대로 두고 좌우를 바꿔</b> 연결한다.</p>
+      <div class="quad" id="escQuad">
+        <div class="frontmark">▲ 기체 앞 (자이로 Y 화살표)</div>
+        <div class="body">Nano<br>FC</div>
+        <div class="slot p-fl" data-pos="FL"><span>1번 CW<span class="lab">?</span></span></div>
+        <div class="slot p-fr" data-pos="FR"><span>2번 CCW<span class="lab">?</span></span></div>
+        <div class="slot p-rl" data-pos="RL"><span>4번 CCW<span class="lab">?</span></span></div>
+        <div class="slot p-rr" data-pos="RR"><span>3번 CW<span class="lab">?</span></span></div>
+      </div>
+      <div class="opts" id="escOpts"></div>
+      <div class="msg" id="escMsg"></div>
+      <div class="warn">⚠️ 모터 번호는 <b>FC마다 다르다.</b> 픽스호크(ArduPilot)는 1번이 앞·오른쪽이고 대각선끼리 같은 방향이지만,
+        MultiWii 방식은 위 그림과 같다. 쓰는 FC의 <b>모터 순서표</b>를 반드시 확인할 것.</div>
+    </div>
+    <div class="card">
+      <div class="sectitle">🔧 ② 조립 점검 <span class="pill">맞는 것만 켜기</span></div>
+      <p class="lead">아래 중 <b>맞는 설명만</b> 눌러서 켜자. 틀린 설명을 켜면 실수로 기록된다.</p>
+      <div class="checks" id="asmChecks"></div>
+      <div class="msg" id="asmMsg"></div>
+      <div class="hint">💡 프로펠러 조립 팁 — 모두 가로로 놓고, <b>동체와 가장 가까운 날개가 모두 높은 쪽</b>이 되도록 맞추면 방향이 맞다.
+        입으로 바람을 불어 회전 방향을 확인할 수도 있다.</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="print">← 3D 출력</button>
+        <button class="btn bigbtn" data-go="sw" id="toSw" disabled>💻 MultiWii →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. MultiWii -->
+  <section class="panel" id="p-sw">
+    <div class="card">
+      <div class="sectitle">💻 MultiWii 세팅 순서 <span class="pill">순서대로 탭</span></div>
+      <p class="lead">MultiWii는 아두이노 나노에 올리는 <b>FC 오픈소스</b>, MultiWiiConf는 기체를 세팅하는 <b>GUI</b>다.</p>
+      <div class="seq" id="swSlots"></div>
+      <div class="opts" id="swOpts"></div>
+      <div class="msg" id="swMsg"></div>
+      <div class="hint">💡 <code>config.h</code>에서 <code>#define QUADX</code>의 주석을 해제해 4개 프로펠러 쿼드콥터로 설정하고,
+      쓰고 있는 <b>자이로 센서 모델명</b>도 활성화한다. <code>#define RCAUXPIN12</code>도 켠다.<br>
+      💡 <b>CALIB_ACC</b>는 기체를 수평에 두고 눌러 약 15초 기다린다. 롤·피치가 0°가 되면 <b>WRITE</b>로 저장한다.</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="build">← 조립</button>
+        <button class="btn bigbtn" data-go="safe" id="toSafe" disabled>🛡️ 시동·안전 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 시동·안전 -->
+  <section class="panel" id="p-safe">
+    <div class="card">
+      <div class="sectitle">⚡ ① ESC 보정 순서 <span class="pill">순서대로 탭</span></div>
+      <p class="lead">ESC가 FC로부터 오는 스로틀의 <b>최솟값·최댓값</b>을 알게 해 주는 과정이다.</p>
+      <div class="seq" id="escSeqSlots"></div>
+      <div class="opts" id="escSeqOpts"></div>
+      <div class="msg" id="escSeqMsg"></div>
+    </div>
+    <div class="card">
+      <div class="sectitle">🎚️ ② 비행 모드 <span class="pill">설명 맞추기</span></div>
+      <p class="lead">모드 줄을 누르고 아래에서 알맞은 설명을 고르자.</p>
+      <div class="rows" id="modeRows"></div>
+      <div class="opts" id="modeOpts"></div>
+      <div class="msg" id="modeMsg"></div>
+      <div class="hint">💡 <b>시동(ARM)</b> = 스로틀 최하 + 요(러더) 최우. <b>시동 끄기</b> = 스로틀 최하 + 요 최좌.<br>
+      💡 시동이 안 걸리면 <code>Multiwii.h</code>의 <b>MINCHECK / MAXCHECK</b> 값과, 설정 화면의 <b>Minthrottle</b>이
+      조종기에서 오는 최소 스로틀값보다 <b>작은지</b> 확인한다.</div>
+    </div>
+    <div class="card">
+      <div class="sectitle">🛡️ ③ 비행 전 안전 점검 <span class="pill">전부 체크</span></div>
+      <p class="lead">실제로 날리기 전에 확인할 것들이다. <b>10개 모두</b> 체크하자.</p>
+      <div class="checks" id="safeChecks"></div>
+      <div class="msg" id="safeMsg"></div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="sw">← MultiWii</button>
+        <button class="btn bigbtn" id="toResult" disabled>🏁 결과 보기</button>
+      </div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none">
+      <div class="sectitle">🏁 제작 결과</div>
+      <div class="score">
+        <div><b id="rScore">0</b><span>점수 (100점)</span></div>
+        <div><b id="rMiss">0</b><span>실수 횟수</span></div>
+        <div><b id="rTime">0분</b><span>걸린 시간</span></div>
+      </div>
+      <table class="log"><thead><tr><th>단계</th><th>실수</th><th>결과</th></tr></thead><tbody id="rBody"></tbody></table>
+      <div class="hint" id="rAdvice"></div>
+      <div class="nav">
+        <button class="btn bigbtn" id="btnReport">📝 보고서 쓰러 가기</button>
+        <button class="btn bigbtn ghost" id="btnSubmit" style="display:none">📤 선생님께 제출</button>
+        <button class="btn bigbtn ghost" id="btnRetry">🔄 다시</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 만들기(아두이노)"></script>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+var START=Date.now();
+var MISS={pin:0,print:0,build:0,sw:0,safe:0};
+var ORDER=["learn","pin","print","build","sw","safe"];
+
+/* ── 1. 부품 도감 ── */
+var PARTS=[
+ {i:"🧠",n:"아두이노 나노",d:["이 드론의 <b>FC(비행 제어 장치)</b> 역할을 한다. 자이로 값을 읽어 4개 모터의 출력을 계산한다.",
+   "디지털 핀 D0~D13, 아날로그 핀 A0~A7을 쓴다. <b>A4=SDA, A5=SCL</b>로 I2C 통신을 한다.",
+   "컴퓨터와 USB로 연결해 아두이노 IDE에서 코드를 올린다."]},
+ {i:"🎯",n:"GY-86 10축 센서",d:["<b>자이로스코프</b>: 어느 방향으로 얼마나 빨리 회전하는지 감지 → 기체를 안정시킨다.",
+   "<b>가속도계</b>: 어느 방향으로 얼마나 빨리 움직이는지 측정.",
+   "<b>기압 고도계</b>: 대기압으로 고도를 측정. <b>지자계</b>: 나침반 역할.",
+   "핀: VCC(3.3~5V) · GND · SDA · SCL. I2C로 아두이노와 통신한다."]},
+ {i:"🟩",n:"만능 기판 3×7cm",d:["240홀 만능 기판에 <b>헤더 핀을 납땜</b>해 아두이노 나노와 센서를 꽂을 소켓을 만든다.",
+   "수신기·ESC·I2C·5V 전원의 인터페이스 포트로 쓴다. 뒷면에서 전선으로 결선한다.",
+   "<b>쇼트</b>가 나지 않도록 주의해서 납땜한다."]},
+ {i:"🔌",n:"ESC ×4 (12A)",d:["EMAX Simonk 12A. FC의 신호를 받아 <b>모터 회전 속도</b>를 만든다.",
+   "삼선 중 <b>좌우 두 선을 바꾸면</b> 회전 방향이 반대가 된다.",
+   "4개 중 <b>하나만</b> 전원선·그라운드를 FC 보드의 모터 전원단에 연결한다."]},
+ {i:"⚙️",n:"BLDC 모터 ×4",d:["EMAX MT2204 <b>2300KV</b>. KV는 1V당 분당 회전수를 뜻한다.",
+   "1·3번은 시계(CW), 2·4번은 반시계(CCW)로 돌아야 토크가 상쇄된다.",
+   "회전 방향이 반대면 ESC 삼선 중 두 선을 바꿔 끼운다."]},
+ {i:"🎮",n:"수신기 · 조종기",d:["<b>5채널 이상</b> 조종기를 쓴다. 스로틀·롤·피치·요 4채널 + AUX(비행 모드).",
+   "조종기와 수신기는 먼저 <b>바인딩</b>해야 한다. 바인딩 키는 B/VCC에, 배터리는 CH3에 연결.",
+   "조종기 전원을 켤 때는 <b>스로틀을 제일 아래</b>로 내려 둔다."]},
+ {i:"🔋",n:"3셀 리포 배터리",d:["리튬 폴리머 3셀 = <b>11.1V</b> (1셀 정격 3.7V).",
+   "만충 4.2V / 최소 3.0V. 이 아래로 방전하면 배터리가 망가진다.",
+   "부풀거나 손상된 배터리는 절대 쓰지 않는다."]},
+ {i:"🖨️",n:"프레임 (3D 출력)",d:["mini <b>250~280</b> 사이즈 쿼드콥터 프레임. 상판·하판·암(Arm)으로 나눠 설계하고 나사로 결합한다.",
+   "프레임 크기는 <b>대각선 모터 축 사이 거리</b>를 mm로 표시한 값이다.",
+   "싱기버스(Thingiverse)에서 'drone frame'을 검색해 참고할 수 있다."]},
+ {i:"🌀",n:"프로펠러",d:["5045 또는 5030 규격. <b>CW 2개 + CCW 2개</b>.",
+   "5030 = 길이 5인치, 피치 3인치.",
+   "가로로 놓았을 때 <b>동체와 가장 가까운 날개가 모두 높은 쪽</b>이면 방향이 맞다."]},
+ {i:"💻",n:"MultiWii",d:["아두이노 기반 드론 컨트롤러용 <b>오픈 소스</b> 펌웨어. 아두이노 나노에 올린다.",
+   "<b>MultiWiiConf</b>는 기체를 세팅하는 GUI 프로그램(자바 필요).",
+   "비행 모드 <b>ACRO / ANGLE / HORIZON</b>을 지원한다."]}
+];
+(function(){
+  var box=$("#parts");
+  PARTS.forEach(function(p){
+    var el=document.createElement("div");
+    el.className="part";
+    el.innerHTML='<div class="pico">'+p.i+'</div><div class="pname">'+p.n+'</div>';
+    el.addEventListener("click",function(){
+      el.classList.add("seen");
+      $("#partDetail").innerHTML='<h4>'+p.i+' '+p.n+'</h4><ul><li>'+p.d.join("</li><li>")+'</li></ul>';
+      var n=$$(".part.seen").length;
+      $("#learnBar").style.width=(n/PARTS.length*100)+"%";
+      var b=$("#toPin");
+      b.textContent = n>=PARTS.length ? "📌 핀 결선 시작" : "📌 핀 결선 시작 (부품 "+n+"/"+PARTS.length+")";
+      if(n>=PARTS.length){ b.disabled=false; unlock("pin"); }
+    });
+    box.appendChild(el);
+  });
+})();
+
+/* ── 2. 핀 결선 ── */
+var SIGS=[
+ {n:"모터(ESC) 1",p:"D3"},{n:"모터(ESC) 2",p:"D10"},{n:"모터(ESC) 3",p:"D9"},{n:"모터(ESC) 4",p:"D11"},
+ {n:"수신기 Throttle",p:"D2"},{n:"수신기 Roll",p:"D4"},{n:"수신기 Pitch",p:"D5"},{n:"수신기 Yaw",p:"D6"},
+ {n:"수신기 Aux1",p:"D7"},{n:"수신기 Aux2",p:"D12"},
+ {n:"I2C SDA (데이터)",p:"A4"},{n:"I2C SCL (클럭)",p:"A5"},{n:"LED",p:"D13"}
+];
+var PINS=["D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","A4","A5"];
+var pickSig=null;
+(function(){
+  var sb=$("#sigs");
+  SIGS.forEach(function(s,i){
+    var el=document.createElement("div");
+    el.className="sig"; el.dataset.i=i;
+    el.innerHTML='<span class="sn">'+s.n+'</span><span class="sp"></span>';
+    el.addEventListener("click",function(){
+      if(el.classList.contains("ok")) return;
+      $$("#sigs .sig").forEach(function(o){o.classList.remove("sel")});
+      el.classList.add("sel"); pickSig=i;
+      say("#pinMsg","",s.n+" 선택 — 꽂을 핀을 누르세요");
+    });
+    sb.appendChild(el);
+  });
+  var pb=$("#pins");
+  PINS.forEach(function(p){
+    var b=document.createElement("button");
+    b.className="btn pin"; b.textContent=p; b.dataset.p=p;
+    b.addEventListener("click",function(){
+      if(pickSig===null){ say("#pinMsg","no","먼저 위에서 연결할 신호를 고르세요"); return; }
+      var s=SIGS[pickSig], el=$('#sigs .sig[data-i="'+pickSig+'"]');
+      if(s.p===p){
+        el.classList.remove("sel"); el.classList.add("ok");
+        $(".sp",el).textContent="→ "+p; b.classList.add("done"); pickSig=null;
+        say("#pinMsg","ok","연결!");
+        if($$("#sigs .sig.ok").length===SIGS.length){
+          $("#toPrint").disabled=false; unlock("print"); mark("pin");
+          say("#pinMsg","ok","🎉 FC 기판 결선 완성! D8 하나만 남았다(안 쓰는 핀).");
+        }
+      }else{
+        MISS.pin++; b.classList.add("shake");
+        setTimeout(function(){b.classList.remove("shake")},400);
+        say("#pinMsg","no",s.n+"은(는) "+p+"이 아니다. 결선표를 다시 보자.");
+      }
+    });
+    pb.appendChild(b);
+  });
+})();
+
+/* ── 3. 3D 출력 설정 ── */
+var SETS=[
+ {l:"레이어 높이",o:["0.1mm","0.2mm","0.4mm"],a:"0.2mm"},
+ {l:"외벽 / 위아래 두께",o:["0.4mm","0.8mm","1.6mm"],a:"0.8mm"},
+ {l:"노즐 온도",o:["190℃","210℃","250℃"],a:"210℃"},
+ {l:"베드 온도",o:["끄기","50℃","100℃"],a:"50℃"},
+ {l:"채우기 밀도",o:["10%","20%","80%"],a:"20%"},
+ {l:"프린트 속도",o:["30mm/s","60mm/s","120mm/s"],a:"60mm/s"},
+ {l:"서포트 생성 위치",o:["생성 안 함","베드에 닿는 곳만","모든 곳"],a:"베드에 닿는 곳만"},
+ {l:"베드 부착물 형상",o:["없음","브림","래프트"],a:"래프트"}
+];
+(function(){
+  var box=$("#setrows");
+  SETS.forEach(function(s,i){
+    var row=document.createElement("div");
+    row.className="setrow"; row.dataset.i=i;
+    var h='<div class="sl">'+s.l+'</div><div class="sc">';
+    s.o.forEach(function(o){ h+='<button class="btn" data-o="'+o+'">'+o+'</button>' });
+    row.innerHTML=h+'</div>';
+    $$(".btn",row).forEach(function(b){
+      b.addEventListener("click",function(){
+        if(row.classList.contains("ok")) return;
+        if(b.dataset.o===s.a){
+          $$(".btn",row).forEach(function(x){x.classList.remove("pick")});
+          b.classList.add("pick"); row.classList.add("ok");
+          say("#printMsg","ok",s.l+" 설정 완료!");
+          if($$("#setrows .setrow.ok").length===SETS.length){
+            $("#toBuild").disabled=false; unlock("build"); mark("print");
+            say("#printMsg","ok","🎉 슬라이싱 설정 완료! G코드로 저장해 출력하자.");
+          }
+        }else{
+          MISS.print++; row.classList.add("shake");
+          setTimeout(function(){row.classList.remove("shake")},400);
+          say("#printMsg","no",s.l+" — 교과서 권장값이 아니다.");
+        }
+      });
+    });
+    box.appendChild(row);
+  });
+})();
+
+/* ── 4-1. ESC 결선 ── */
+var ESC_ANS={FL:"직결",RR:"직결",FR:"교차",RL:"교차"};
+var ESC_NO={FL:"1번 CW",FR:"2번 CCW",RL:"4번 CCW",RR:"3번 CW"};
+var pickEsc=null, escOK=false, asmOK=false;
+(function(){
+  var box=$("#escOpts");
+  [["직결","🔗 삼선 그대로 직결 (CW)"],["교차","🔀 좌우 바꿔 교차 결선 (CCW)"]].forEach(function(a){
+    var b=document.createElement("button");
+    b.className="btn opt"; b.dataset.v=a[0]; b.textContent=a[1];
+    b.addEventListener("click",function(){
+      $$("#escOpts .opt").forEach(function(o){o.classList.remove("sel")});
+      b.classList.add("sel"); pickEsc=a[0];
+      say("#escMsg","",a[1]+" 선택 — 적용할 모터를 누르세요");
+    });
+    box.appendChild(b);
+  });
+  $$("#escQuad .slot").forEach(function(s){
+    s.addEventListener("click",function(){
+      if(!pickEsc){ say("#escMsg","no","먼저 아래에서 결선 방식을 고르세요"); return; }
+      if(s.classList.contains("ok")) return;
+      var pos=s.dataset.pos;
+      if(ESC_ANS[pos]===pickEsc){
+        s.classList.add("ok");
+        s.innerHTML='<span>'+ESC_NO[pos]+'<span class="lab">'+pickEsc+'</span></span>';
+        say("#escMsg","ok","맞다!");
+        if($$("#escQuad .slot.ok").length===4){ escOK=true; checkBuild();
+          say("#escMsg","ok","🎉 CW는 직결, CCW는 교차 — 모두 정확!"); }
+      }else{
+        MISS.build++; s.classList.add("shake");
+        setTimeout(function(){s.classList.remove("shake")},400);
+        say("#escMsg","no","이 모터는 그 방식이 아니다. CW=직결, CCW=교차!");
+      }
+    });
+  });
+})();
+
+/* ── 4-2. 조립 점검 ── */
+var ASM=[
+ {t:"자이로 센서의 <b>Y 화살표</b>가 동체의 앞 방향을 향하도록 중앙에 부착한다",ok:true},
+ {t:"ESC <b>4개 모두</b>의 전원선과 그라운드를 FC 보드 전원단에 연결한다",ok:false},
+ {t:"ESC <b>하나만</b> 전원선·그라운드를 FC 보드 모터 인터페이스 전원단에 연결한다",ok:true},
+ {t:"FC 보드와 수신기는 <b>암-암(F-F) 듀퐁 케이블</b>로 연결한다",ok:true},
+ {t:"프로펠러는 <b>대각선끼리 서로 반대</b> 방향으로 돌아야 한다",ok:false},
+ {t:"프로펠러는 <b>대각선끼리 같은</b> 방향으로 돌아야 한다",ok:true},
+ {t:"자이로 센서는 동체 <b>맨 끝 암(Arm) 위</b>에 붙이는 것이 정확하다",ok:false}
+];
+(function(){
+  var box=$("#asmChecks");
+  ASM.forEach(function(c,i){
+    var el=document.createElement("div");
+    el.className="chk"; el.dataset.i=i;
+    el.innerHTML='<span class="box">✓</span><span>'+c.t+'</span>';
+    el.addEventListener("click",function(){
+      if(el.classList.contains("on")) return;
+      if(c.ok){
+        el.classList.add("on"); say("#asmMsg","ok","맞는 설명이다!");
+        var need=ASM.filter(function(x){return x.ok}).length;
+        if($$("#asmChecks .chk.on").length===need){ asmOK=true; checkBuild();
+          say("#asmMsg","ok","🎉 맞는 설명을 모두 찾았다!"); }
+      }else{
+        MISS.build++; el.classList.add("shake");
+        setTimeout(function(){el.classList.remove("shake")},400);
+        say("#asmMsg","no","이건 틀린 설명이다. 다시 읽어 보자.");
+      }
+    });
+    box.appendChild(el);
+  });
+})();
+function checkBuild(){ if(escOK&&asmOK){ $("#toSw").disabled=false; unlock("sw"); mark("build"); } }
+
+/* ── 5. MultiWii 순서 ── */
+var SW_SEQ=[
+ "MultiWii_2_4.zip을 내려받아 압축을 푼다",
+ "MultiWii 폴더의 MultiWii.ino를 아두이노 IDE로 연다",
+ "config.h에서 #define QUADX 주석을 해제한다",
+ "사용 중인 자이로 센서 모델명을 활성화한다",
+ "#define RCAUXPIN12를 활성화한다",
+ "전체 코드를 아두이노 나노에 업로드한다",
+ "MultiWiiConf.exe를 실행하고 COM 포트 선택 후 START",
+ "기체를 수평에 두고 CALIB_ACC로 가속 센서를 보정한다",
+ "AUX1의 LOW·MID·HIGH를 HORIZON에 체크하고 WRITE로 저장한다"
+];
+makeSeq({slots:"#swSlots",opts:"#swOpts",msg:"#swMsg",list:SW_SEQ,key:"sw",
+ done:function(){ $("#toSafe").disabled=false; unlock("safe"); mark("sw"); }});
+
+/* ── 6-1. ESC 보정 순서 ── */
+var ESC_SEQ=[
+ "모든 프로펠러를 드론에서 제거한다",
+ "배터리를 분리하고 드론 전원을 끈다",
+ "조종기를 켜고 스로틀을 최대로 올린다",
+ "드론에 전원을 인가한다 (ESC가 비프음으로 시작을 알림)",
+ "다른 비프음이 들리면 즉시 스로틀을 최소로 내린다",
+ "연속 비프음으로 보정 완료 — 전원을 껐다 다시 켠다"
+];
+var escSeqOK=false, modeOK=false, safeOK=false;
+makeSeq({slots:"#escSeqSlots",opts:"#escSeqOpts",msg:"#escSeqMsg",list:ESC_SEQ,key:"safe",
+ done:function(){ escSeqOK=true; checkSafe(); }});
+
+/* ── 6-2. 비행 모드 ── */
+var MODES=[
+ {k:"ACRO (ARM)",a:"자이로 센서만 사용 — 자동으로 수평을 잡아 주지 않아 초보자에게 어렵다"},
+ {k:"ANGLE",a:"자이로 + 가속 센서 — 자동으로 수평을 유지해 준다"},
+ {k:"HORIZON",a:"천천히 움직이면 ANGLE, 빠르게 움직이면 ACRO처럼 동작한다"}
+];
+var pickMode=null;
+(function(){
+  var rb=$("#modeRows");
+  MODES.forEach(function(m,i){
+    var el=document.createElement("div");
+    el.className="row"; el.dataset.i=i;
+    el.innerHTML='<span class="rk">'+m.k+'</span><span class="rv">? 눌러서 선택</span>';
+    el.addEventListener("click",function(){
+      if(el.classList.contains("ok")) return;
+      $$("#modeRows .row").forEach(function(o){o.classList.remove("sel")});
+      el.classList.add("sel"); pickMode=i;
+      say("#modeMsg","",m.k+" 선택 — 설명을 고르세요");
+    });
+    rb.appendChild(el);
+  });
+  var ob=$("#modeOpts");
+  shuffle(MODES.map(function(m){return m.a})).forEach(function(a){
+    var b=document.createElement("button");
+    b.className="btn opt"; b.textContent=a;
+    b.addEventListener("click",function(){
+      if(pickMode===null){ say("#modeMsg","no","먼저 위에서 모드를 고르세요"); return; }
+      var m=MODES[pickMode], el=$('#modeRows .row[data-i="'+pickMode+'"]');
+      if(m.a===a){
+        el.classList.remove("sel"); el.classList.add("ok"); $(".rv",el).textContent=a;
+        b.classList.add("used"); pickMode=null; say("#modeMsg","ok","맞다!");
+        if($$("#modeRows .row.ok").length===MODES.length){ modeOK=true; checkSafe();
+          say("#modeMsg","ok","🎉 비행 모드 완벽!"); }
+      }else{ MISS.safe++; say("#modeMsg","no",m.k+"의 설명이 아니다."); }
+    });
+    ob.appendChild(b);
+  });
+})();
+
+/* ── 6-3. 안전 점검 ── */
+var SAFE=[
+ "드론의 모든 부품과 연결 상태를 철저히 점검했다",
+ "사람이나 동물이 없는 넓고 개방된 공간이다",
+ "건물·나무·전선 등 장애물이 없는 곳을 골랐다",
+ "강풍·비·눈 등 나쁜 날씨가 아니다",
+ "배터리 용량이 충분하고 손상되지 않았다",
+ "문제가 생기면 즉시 착륙시킬 지점을 미리 정해 두었다",
+ "지역의 드론 비행 제한 고도 규정을 확인했다",
+ "드론을 항상 시야 안에서 조종할 것이다",
+ "소프트웨어·펌웨어가 최신 상태인지 확인했다",
+ "프로펠러를 제거한 상태로 아밍·모터 테스트를 먼저 마쳤다"
+];
+(function(){
+  var box=$("#safeChecks");
+  SAFE.forEach(function(t){
+    var el=document.createElement("div");
+    el.className="chk";
+    el.innerHTML='<span class="box">✓</span><span>'+t+'</span>';
+    el.addEventListener("click",function(){
+      el.classList.toggle("on");
+      var n=$$("#safeChecks .chk.on").length;
+      say("#safeMsg", n===SAFE.length?"ok":"", n===SAFE.length?"🎉 안전 점검 완료! 이제 날려도 좋다.":"체크 "+n+"/"+SAFE.length);
+      if(n===SAFE.length){ safeOK=true; checkSafe(); }
+    });
+    box.appendChild(el);
+  });
+})();
+function checkSafe(){ if(escSeqOK&&modeOK&&safeOK){ mark("safe"); $("#toResult").disabled=false; } }
+
+/* ── 순서 게임 공통 ── */
+function makeSeq(cfg){
+  var slots=$(cfg.slots), opts=$(cfg.opts), n=cfg.list.length, cur=0;
+  function draw(){
+    slots.innerHTML="";
+    for(var i=0;i<n;i++){
+      var d=document.createElement("div");
+      d.className="seqslot"+(i<cur?" filled":"");
+      d.innerHTML='<span class="no">'+(i+1)+'</span><span>'+(i<cur?cfg.list[i]:"…")+'</span>';
+      slots.appendChild(d);
+    }
+  }
+  draw();
+  shuffle(cfg.list.slice()).forEach(function(t){
+    var b=document.createElement("button");
+    b.className="btn opt"; b.textContent=t;
+    b.addEventListener("click",function(){
+      if(t===cfg.list[cur]){
+        b.classList.add("used"); cur++; draw();
+        if(cur>=n){ say(cfg.msg,"ok","🎉 순서 완벽!"); cfg.done(); }
+        else say(cfg.msg,"ok","맞다! 다음 순서는?");
+      }else{
+        MISS[cfg.key]++; say(cfg.msg,"no","순서가 아니다. 처음부터 다시.");
+        cur=0; draw(); $$(".opt",opts).forEach(function(o){o.classList.remove("used")});
+      }
+    });
+    opts.appendChild(b);
+  });
+}
+
+/* ── 이동 ── */
+function unlock(k){ var s=$$("#steps .step")[ORDER.indexOf(k)]; if(s) s.classList.remove("locked") }
+function mark(k){ var s=$$("#steps .step")[ORDER.indexOf(k)]; if(s) s.classList.add("done") }
+function go(k){
+  $$(".panel").forEach(function(p){p.classList.remove("show")});
+  $("#p-"+k).classList.add("show");
+  $$("#steps .step").forEach(function(s){s.classList.toggle("on",s.dataset.go===k)});
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+$$("[data-go]").forEach(function(el){
+  el.addEventListener("click",function(){
+    if(el.classList.contains("step")&&el.classList.contains("locked")) return;
+    if(el.tagName==="BUTTON"&&el.disabled) return;
+    go(el.dataset.go);
+  });
+});
+
+/* ── 결과 ── */
+var STEPNAME={pin:"FC 기판 핀 결선",print:"3D 출력 설정",build:"모터·ESC 조립",sw:"MultiWii 세팅",safe:"보정·비행 모드·안전"};
+$("#toResult").addEventListener("click",function(){
+  var keys=Object.keys(STEPNAME);
+  var totalMiss=keys.reduce(function(a,k){return a+MISS[k]},0);
+  var score=Math.max(0,100-totalMiss*4);
+  var mins=Math.max(1,Math.round((Date.now()-START)/60000));
+  $("#rScore").textContent=score; $("#rMiss").textContent=totalMiss; $("#rTime").textContent=mins+"분";
+  var tb=$("#rBody"); tb.innerHTML="";
+  keys.forEach(function(k){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td>"+STEPNAME[k]+"</td><td>"+MISS[k]+"회</td><td>"+
+      (MISS[k]===0?'<span class="badge g">한 번에 성공</span>':'<span class="badge b">복습 필요</span>')+"</td>";
+    tb.appendChild(tr);
+  });
+  var weak=keys.filter(function(k){return MISS[k]>0}).map(function(k){return STEPNAME[k]});
+  $("#rAdvice").innerHTML = weak.length
+    ? "📌 <b>"+weak.join(", ")+"</b> 부분을 다시 확인하자. 보고서 '어려웠던 점'에 쓰면 딱 좋다."
+    : "🏆 전 단계를 한 번에 통과했다! 보고서에는 '왜 그렇게 연결해야 하는지'를 설명해 보자.";
+  $("#resultCard").style.display="block";
+  try{
+    localStorage.setItem("drone_build_arduino", JSON.stringify({
+      tool:"아두이노", score:score, miss:MISS, totalMiss:totalMiss, minutes:mins, at:new Date().toISOString()
+    }));
+  }catch(e){}
+  if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
+    $("#btnSubmit").style.display="block";
+    $("#btnSubmit").onclick=function(){
+      ResultCollector.open({
+        score:score, correct:keys.length-weak.length, total:keys.length, wrong:weak.join(","),
+        durationSec:Math.round((Date.now()-START)/1000),
+        labels:{score:"점수",correct:"한번에 통과한 단계",total:"전체 단계",rate:"통과율(%)",wrong:"실수한 단계"}
+      });
+    };
+  }
+  $("#resultCard").scrollIntoView({behavior:"smooth"});
+});
+$("#btnRetry").addEventListener("click",function(){ location.reload() });
+$("#btnReport").addEventListener("click",function(){
+  var rc=new URLSearchParams(location.search).get("rc");
+  location.href="report.html?from=arduino"+(rc?"&rc="+encodeURIComponent(rc):"");
+});
+
+function say(sel,cls,txt){ var e=$(sel); e.className="msg "+(cls||""); e.textContent=txt }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t } return a }
+})();
+</script>
+</body>
+</html>

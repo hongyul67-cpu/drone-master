@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>드론 제작 실습 보고서</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --panel2:#16213c; --line:#243456;
+    --ink:#eaf1ff; --sub:#9db0d6; --muted:#6f83ac;
+    --brand:#a78bfa; --brand2:#c4b5fd; --good:#34d399; --bad:#fb7185; --gold:#fbbf24;
+    --shadow:0 14px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #2a1e4d 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font-family:"Malgun Gothic",system-ui,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent; line-height:1.55;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:16px 14px 90px}
+  .btn{cursor:pointer;border:0;border-radius:12px;font-weight:800;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+
+  header.top{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px;
+    background:linear-gradient(120deg,#241a45,#3b2a6b);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow)}
+  .logo{font-size:34px}
+  header.top .t1{font-size:13px;color:var(--brand2);font-weight:800;letter-spacing:.5px}
+  header.top .t2{font-size:20px;font-weight:900}
+  header.top .t3{font-size:12px;color:var(--sub);margin-top:2px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .sectitle{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:900;margin-bottom:6px;flex-wrap:wrap}
+  .sectitle .pill{font-size:11px;background:#2e1f57;color:var(--brand2);padding:3px 9px;border-radius:999px;font-weight:800}
+  .lead{font-size:13.5px;color:var(--sub);margin:2px 0 0}
+  .hint{background:#0d1a33;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--sub);margin-top:12px}
+  .hint b{color:var(--gold)}
+
+  /* 실습 선택 */
+  .kinds{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .kind{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:.15s}
+  .kind:hover{border-color:var(--brand)}
+  .kind.on{background:linear-gradient(135deg,#7c3aed,#4f46e5);border-color:transparent}
+  .kind .ki{font-size:28px}
+  .kind .kn{font-size:14px;font-weight:900;margin-top:4px}
+  .kind .kd{font-size:11.5px;color:var(--sub);margin-top:2px}
+  .kind.on .kd{color:#ddd6fe}
+
+  /* 학생 정보 */
+  .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:10px}
+  .field label{display:block;font-size:11.5px;font-weight:800;color:var(--sub);margin-bottom:4px}
+  .field input{width:100%;background:#0d1a33;border:1px solid var(--line);border-radius:10px;
+    color:var(--ink);padding:10px;font-size:14px;font-family:inherit}
+  .field input:focus{outline:none;border-color:var(--brand)}
+
+  /* 게임 기록 */
+  .rec{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-top:10px;text-align:center}
+  .rec div{background:#0d1a33;border:1px solid var(--line);border-radius:12px;padding:11px 5px}
+  .rec b{display:block;font-size:20px;color:var(--brand2)}
+  .rec span{font-size:11px;color:var(--sub)}
+  .norec{background:#0d1a33;border:1px dashed var(--line);border-radius:12px;padding:14px;font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+
+  /* 자기평가 */
+  .rub{display:grid;gap:9px;margin-top:10px}
+  .rubrow{background:#0d1a33;border:1px solid var(--line);border-radius:12px;padding:11px 12px}
+  .rubrow.filled{border-color:var(--brand)}
+  .rubrow .rq{font-size:13.5px;font-weight:700;margin-bottom:8px}
+  .rubrow .rc{display:flex;flex-wrap:wrap;gap:6px}
+  .rubrow .rc .btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:7px 12px;font-size:12.5px}
+  .rubrow .rc .btn:hover{border-color:var(--brand)}
+  .rubrow .rc .btn.pick{background:linear-gradient(135deg,#7c3aed,#4f46e5);border-color:transparent;color:#fff}
+  .rubtotal{margin-top:12px;background:#0d1a33;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;font-size:14px;font-weight:900}
+  .rubtotal b{color:var(--brand2);font-size:22px}
+
+  /* 서술형 */
+  .qa{margin-top:12px}
+  .qa .ql{font-size:13.5px;font-weight:900;color:var(--brand2);margin-bottom:5px}
+  .qa .qtip{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .qa textarea{width:100%;min-height:110px;background:#0d1a33;border:1px solid var(--line);border-radius:12px;
+    color:var(--ink);padding:12px;font-size:14px;font-family:inherit;line-height:1.6;resize:vertical}
+  .qa textarea:focus{outline:none;border-color:var(--brand)}
+  .cnt{font-size:11.5px;color:var(--muted);text-align:right;margin-top:3px}
+  .cnt.ok{color:var(--good)}
+
+  /* 사진 */
+  .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
+  .photo{position:relative;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0d1a33}
+  .photo img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover}
+  .photo .del{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.7);color:#fff;border-radius:50%;
+    width:24px;height:24px;font-size:13px;display:grid;place-items:center}
+  .photo .cap{width:100%;background:#0b1428;border:0;border-top:1px solid var(--line);color:var(--ink);
+    padding:7px;font-size:12px;font-family:inherit}
+  .photo .cap:focus{outline:none}
+  .addphoto{border:1px dashed var(--line);border-radius:12px;display:grid;place-items:center;
+    aspect-ratio:4/3;cursor:pointer;color:var(--muted);font-size:13px;text-align:center;background:#0d1a33}
+  .addphoto:hover{border-color:var(--brand);color:var(--brand2)}
+
+  .nav{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .bigbtn{flex:1;min-width:140px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:14px;font-size:15px}
+  .bigbtn:disabled{opacity:.4;cursor:not-allowed}
+  .bigbtn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--sub)}
+  .msg{margin-top:10px;font-size:13.5px;font-weight:800;min-height:20px}
+  .msg.ok{color:var(--good)} .msg.no{color:var(--bad)}
+  .saved{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#12402f;border:1px solid var(--good);
+    color:#a7f3d0;padding:9px 18px;border-radius:99px;font-size:13px;font-weight:800;opacity:0;transition:.3s;pointer-events:none;z-index:50}
+  .saved.show{opacity:1}
+
+  /* ───── 인쇄 ───── */
+  .printonly{display:none}
+  @media print{
+    @page{size:A4;margin:14mm}
+    body{background:#fff !important;color:#000 !important}
+    .wrap{max-width:none;padding:0}
+    header.top,.card{background:#fff !important;border:1px solid #999 !important;box-shadow:none !important;
+      border-radius:0 !important;margin-bottom:8mm;padding:6mm;break-inside:avoid}
+    header.top{border-bottom:2px solid #000 !important}
+    .t1,.t3,.lead,.sectitle .pill,.qtip,.cnt,.hint,.nav,.addphoto,.photo .del,.kinds,.norec{display:none !important}
+    .t2{font-size:18pt;color:#000}
+    .sectitle{color:#000;font-size:13pt;border-bottom:1px solid #000;padding-bottom:2mm}
+    .field input{background:#fff !important;color:#000 !important;border:1px solid #666 !important;
+      border-radius:0 !important;font-size:10.5pt}
+    .qa textarea{display:none !important}
+    .qa .ptext{display:block;border:1px solid #666;padding:2.5mm;min-height:20mm;
+      white-space:pre-wrap;word-break:break-word;font-size:10.5pt;color:#000;break-inside:avoid}
+    .qa .ql{color:#000;font-size:11pt}
+    #kindCard .sectitle{display:none !important}
+    #submitCard{display:none !important}
+    .rubrow{background:#fff !important;border:1px solid #999 !important;border-radius:0 !important;padding:2.5mm}
+    .rubrow .rq{color:#000;font-size:10pt;margin-bottom:2mm}
+    .rubrow .rc .btn{display:none}
+    .rubrow .rc .btn.pick{display:inline-block;background:#fff !important;color:#000 !important;
+      border:1.5px solid #000 !important;font-size:10pt}
+    .rubtotal,.rec div{background:#fff !important;border:1px solid #999 !important;color:#000}
+    .rubtotal b,.rec b{color:#000}
+    .rec span{color:#333}
+    .photo{border:1px solid #999 !important;break-inside:avoid}
+    .photo .cap{background:#fff !important;color:#000 !important;border-top:1px solid #999 !important}
+    .printonly{display:block}
+    .field label{color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">📝</div>
+    <div>
+      <div class="t1">드론 제작</div>
+      <div class="t2">드론 제작 실습 보고서</div>
+      <div class="t3">만들기 게임 기록이 자동으로 들어온다 · 자동 임시저장</div>
+    </div>
+  </header>
+
+  <!-- 실습 선택 -->
+  <div class="card" id="kindCard">
+    <div class="printonly" id="kindPrint" style="font-weight:900"></div>
+    <div class="sectitle">🎯 어떤 실습 보고서인가요?</div>
+    <p class="lead">고르면 그에 맞는 자기평가 항목과 게임 기록이 채워진다.</p>
+    <div class="kinds">
+      <div class="kind" data-kind="pixhawk">
+        <div class="ki">🚁</div><div class="kn">픽스호크 상용FC 드론</div>
+        <div class="kd">Ⅳ영역 · 조립·결선·미션플래너</div>
+      </div>
+      <div class="kind" data-kind="arduino">
+        <div class="ki">🛩️</div><div class="kn">아두이노 나노 드론</div>
+        <div class="kd">Ⅲ영역 · FC기판·3D출력·MultiWii</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 학생 정보 -->
+  <div class="card">
+    <div class="sectitle">🙋 학생 정보 <span class="pill">인쇄에 함께 나옴</span></div>
+    <div class="fields">
+      <div class="field"><label>학과</label><input id="fDept" placeholder="항공드론과"></div>
+      <div class="field"><label>학년</label><input id="fGrade" placeholder="2"></div>
+      <div class="field"><label>반</label><input id="fCls" placeholder="1"></div>
+      <div class="field"><label>번호</label><input id="fNum" placeholder="7"></div>
+      <div class="field"><label>이름</label><input id="fName" placeholder="홍길동"></div>
+      <div class="field"><label>실습 날짜</label><input id="fDate" type="date"></div>
+    </div>
+    <div class="fields" style="margin-top:10px">
+      <div class="field" style="grid-column:1/-1"><label>실습 제목</label><input id="fTitle" placeholder="예) 픽스호크 드론 조립 및 시험비행"></div>
+    </div>
+  </div>
+
+  <!-- 게임 기록 -->
+  <div class="card">
+    <div class="sectitle">🎮 만들기 게임 기록 <span class="pill">자동</span></div>
+    <p class="lead">이 기기에서 만들기 게임을 끝냈다면 결과가 자동으로 들어온다.</p>
+    <div id="recBox"></div>
+  </div>
+
+  <!-- 자기평가 -->
+  <div class="card">
+    <div class="sectitle">✅ 실습 점검 (자기평가)</div>
+    <p class="lead">스스로 얼마나 해냈는지 솔직하게 고르자. 못한 항목이 있어도 괜찮다 — 무엇을 더 배워야 할지 아는 게 목적이다.</p>
+    <div class="rub" id="rub"></div>
+    <div class="rubtotal">자기평가 점수 <b id="rubTotal">0</b> / 100점</div>
+  </div>
+
+  <!-- 서술형 -->
+  <div class="card">
+    <div class="sectitle">✍️ 보고서 작성</div>
+    <div id="qas"></div>
+  </div>
+
+  <!-- 사진 -->
+  <div class="card">
+    <div class="sectitle">📷 실습 사진 <span class="pill">최대 6장</span></div>
+    <p class="lead">만든 드론이나 작업 과정을 찍은 사진을 넣자. 사진은 <b>이 기기에만</b> 저장되고 인터넷으로 전송되지 않는다.</p>
+    <div class="photos" id="photos">
+      <div class="addphoto" id="addPhoto">＋<br>사진 넣기</div>
+    </div>
+    <input type="file" id="fileIn" accept="image/*" multiple style="display:none">
+  </div>
+
+  <!-- 마무리 -->
+  <div class="card" id="submitCard">
+    <div class="sectitle">📤 제출</div>
+    <div class="msg" id="subMsg"></div>
+    <div class="nav">
+      <button class="btn bigbtn" id="btnPrint">🖨️ 인쇄 / PDF로 저장</button>
+      <button class="btn bigbtn ghost" id="btnSubmit" style="display:none">📤 선생님께 제출</button>
+      <button class="btn bigbtn ghost" id="btnClear">🗑️ 전부 지우기</button>
+    </div>
+    <div class="hint">💡 <b>인쇄</b>를 누르고 프린터를 'PDF로 저장'으로 고르면 PDF 파일이 만들어진다. 사진과 자기평가도 함께 나온다.<br>
+    💡 쓰는 내용은 <b>자동으로 임시저장</b>되니 실수로 창을 닫아도 다시 열면 그대로 있다.</div>
+  </div>
+
+</div>
+<div class="saved" id="savedTip">임시저장됨</div>
+
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 제작 보고서"></script>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var KEY="drone_report_v1";
+
+/* ── 자기평가 항목 ── */
+var RUBRIC={
+ pixhawk:[
+  "프레임을 순서대로 조립하고, 모터를 정확한 번호와 자리에 달았는가?",
+  "ESC 신호선·전원선과 GPS·텔레메트리·수신기를 올바른 포트에 배선했는가?",
+  "프로펠러의 회전 방향(CW/CCW)을 이해하고 알맞게 결착했는가?",
+  "조종기와 수신기를 바인딩하고 채널(AETR)과 비행 모드를 설정했는가?",
+  "미션 플래너로 가속도계·나침반·ESC 보정과 페일세이프를 설정했는가?"
+ ],
+ arduino:[
+  "자이로 센서의 역할을 알고, 결선표대로 아두이노 나노 FC 기판을 만들었는가?",
+  "드론 프레임을 모델링하고 알맞은 출력 옵션으로 3D 출력했는가?",
+  "모터·ESC·수신기·배터리를 올바른 순서와 방법으로 조립했는가?",
+  "MultiWii를 구동하고 config.h 설정과 가속 센서 보정을 마쳤는가?",
+  "비행 전 안전 점검 항목과 비상 상황 대처 요령을 알고 있는가?"
+ ]
+};
+var LEVELS=[["매우 잘함",20],["잘함",15],["보통",10],["노력 요함",5]];
+
+/* ── 서술형 ── */
+var QAS=[
+ {k:"q1",l:"1. 제작 과정 요약",tip:"어떤 순서로 무엇을 했는지 차례대로 써 보자. (예: 부품 확인 → 프레임 조립 → 결선 → …)",min:80},
+ {k:"q2",l:"2. 어려웠던 점과 해결 방법",tip:"막혔던 부분과, 그것을 어떻게 해결했는지(또는 어떻게 해결하면 좋을지) 써 보자.",min:60},
+ {k:"q3",l:"3. 새로 알게 된 것",tip:"이번 실습 전에는 몰랐는데 알게 된 것을 써 보자. '왜 그렇게 해야 하는지'까지 쓰면 좋다.",min:60},
+ {k:"q4",l:"4. 다음에 만든다면 (개선 아이디어)",tip:"더 좋게 만들 방법이나, 붙여 보고 싶은 임무 장치를 상상해서 써 보자.",min:40}
+];
+
+var S={kind:"",rub:{},photos:[]};
+
+/* ── 실습 선택 ── */
+$$(".kind").forEach(function(k){
+  k.addEventListener("click",function(){ setKind(k.dataset.kind); save(); });
+});
+function setKind(kind){
+  S.kind=kind;
+  $$(".kind").forEach(function(k){ k.classList.toggle("on",k.dataset.kind===kind) });
+  $("#kindPrint").textContent = "실습 영역 : " +
+    (kind==="pixhawk" ? "Ⅳ. 상용 FC(픽스호크) 드론 제작" : "Ⅲ. 마이크로프로세서(아두이노 나노) 드론 제작");
+  drawRubric(); drawRecord();
+  if(!$("#fTitle").value){
+    $("#fTitle").value = kind==="pixhawk" ? "픽스호크 상용FC 드론 조립 및 시험비행" : "아두이노 나노 드론 제작 및 비행 테스트";
+  }
+}
+
+/* ── 자기평가 ── */
+function drawRubric(){
+  var box=$("#rub"); box.innerHTML="";
+  var list=RUBRIC[S.kind]||[];
+  if(!list.length){ box.innerHTML='<div class="norec">위에서 실습 종류를 먼저 골라 주세요.</div>'; total(); return; }
+  list.forEach(function(q,i){
+    var row=document.createElement("div");
+    row.className="rubrow"+(S.rub[i]?" filled":"");
+    var h='<div class="rq">'+(i+1)+'. '+q+'</div><div class="rc">';
+    LEVELS.forEach(function(L){
+      h+='<button class="btn'+(S.rub[i]===L[1]?" pick":"")+'" data-v="'+L[1]+'">'+L[0]+' ('+L[1]+'점)</button>';
+    });
+    row.innerHTML=h+'</div>';
+    $$(".btn",row).forEach(function(b){
+      b.addEventListener("click",function(){
+        S.rub[i]=+b.dataset.v;
+        $$(".btn",row).forEach(function(x){x.classList.remove("pick")});
+        b.classList.add("pick"); row.classList.add("filled");
+        total(); save();
+      });
+    });
+    box.appendChild(row);
+  });
+  total();
+}
+function total(){
+  var t=0, list=RUBRIC[S.kind]||[];
+  list.forEach(function(_,i){ t += S.rub[i]||0 });
+  $("#rubTotal").textContent=t;
+  return t;
+}
+
+/* ── 게임 기록 ── */
+function drawRecord(){
+  var box=$("#recBox");
+  var raw=null;
+  try{ raw=localStorage.getItem(S.kind==="arduino"?"drone_build_arduino":"drone_build_pixhawk") }catch(e){}
+  if(!S.kind){ box.innerHTML='<div class="norec">위에서 실습 종류를 먼저 골라 주세요.</div>'; return; }
+  if(!raw){
+    box.innerHTML='<div class="norec">아직 만들기 게임 기록이 없다. 게임을 먼저 끝내면 여기에 자동으로 들어온다.<br>'+
+      '<span style="font-size:12px">(보고서만 써도 괜찮다)</span></div>';
+    S.rec=null; return;
+  }
+  var d; try{ d=JSON.parse(raw) }catch(e){ box.innerHTML='<div class="norec">기록을 읽을 수 없다.</div>'; return; }
+  S.rec=d;
+  var names = S.kind==="arduino"
+    ? {pin:"핀 결선",print:"3D 출력",build:"조립",sw:"MultiWii",safe:"안전"}
+    : {frame:"조립",wire:"결선",prop:"프로펠러",tx:"조종기",cal:"보정",fly:"시험비행"};
+  var h='<div class="rec"><div><b>'+d.score+'</b><span>게임 점수</span></div>'+
+        '<div><b>'+d.totalMiss+'</b><span>실수 횟수</span></div>'+
+        '<div><b>'+d.minutes+'분</b><span>걸린 시간</span></div>';
+  Object.keys(names).forEach(function(k){
+    h+='<div><b>'+(d.miss[k]||0)+'</b><span>'+names[k]+'</span></div>';
+  });
+  box.innerHTML=h+'</div>';
+}
+
+/* ── 서술형 ── */
+(function(){
+  var box=$("#qas");
+  QAS.forEach(function(q){
+    var el=document.createElement("div");
+    el.className="qa";
+    el.innerHTML='<div class="ql">'+q.l+'</div><div class="qtip">'+q.tip+'</div>'+
+      '<textarea id="'+q.k+'" placeholder="여기에 쓰세요"></textarea>'+
+      '<div class="ptext printonly" id="p_'+q.k+'"></div>'+
+      '<div class="cnt" id="c_'+q.k+'">0자 (권장 '+q.min+'자 이상)</div>';
+    box.appendChild(el);
+    var ta=$("#"+q.k,el), c=$("#c_"+q.k,el);
+    ta.addEventListener("input",function(){
+      var n=ta.value.trim().length;
+      c.textContent=n+"자 (권장 "+q.min+"자 이상)";
+      c.className="cnt"+(n>=q.min?" ok":"");
+      autoGrow(ta); syncPrint(); save();
+    });
+  });
+})();
+function autoGrow(ta){ ta.style.height="auto"; ta.style.height=Math.max(110,ta.scrollHeight)+"px" }
+function syncPrint(){ QAS.forEach(function(q){ $("#p_"+q.k).textContent=$("#"+q.k).value }) }
+
+/* ── 사진 ── */
+$("#addPhoto").addEventListener("click",function(){ $("#fileIn").click() });
+$("#fileIn").addEventListener("change",function(e){
+  var files=Array.prototype.slice.call(e.target.files||[]);
+  files.forEach(function(f){
+    if(S.photos.length>=6){ msg("no","사진은 최대 6장까지 넣을 수 있다."); return; }
+    var r=new FileReader();
+    r.onload=function(){ shrink(r.result,function(url){ S.photos.push({url:url,cap:""}); drawPhotos(); save(); }) };
+    r.readAsDataURL(f);
+  });
+  e.target.value="";
+});
+function shrink(dataUrl,cb){          // 저장 용량을 위해 가로 900px로 줄인다
+  var img=new Image();
+  img.onload=function(){
+    var w=img.width,h=img.height,M=900;
+    if(w>M){ h=Math.round(h*M/w); w=M }
+    var cv=document.createElement("canvas"); cv.width=w; cv.height=h;
+    cv.getContext("2d").drawImage(img,0,0,w,h);
+    cb(cv.toDataURL("image/jpeg",0.72));
+  };
+  img.onerror=function(){ cb(dataUrl) };
+  img.src=dataUrl;
+}
+function drawPhotos(){
+  var box=$("#photos");
+  $$(".photo",box).forEach(function(p){p.remove()});
+  S.photos.forEach(function(p,i){
+    var el=document.createElement("div");
+    el.className="photo";
+    el.innerHTML='<img src="'+p.url+'" alt="실습 사진 '+(i+1)+'"><div class="del">✕</div>'+
+      '<input class="cap" placeholder="사진 설명" value="'+String(p.cap).replace(/"/g,"&quot;")+'">';
+    $(".del",el).addEventListener("click",function(){ S.photos.splice(i,1); drawPhotos(); save() });
+    $(".cap",el).addEventListener("input",function(e){ p.cap=e.target.value; save() });
+    box.insertBefore(el,$("#addPhoto"));
+  });
+  $("#addPhoto").style.display = S.photos.length>=6 ? "none" : "grid";
+}
+
+/* ── 저장 / 불러오기 ── */
+var saveT=null;
+function save(){
+  clearTimeout(saveT);
+  saveT=setTimeout(function(){
+    var d={kind:S.kind,rub:S.rub,photos:S.photos,f:{},q:{}};
+    ["fDept","fGrade","fCls","fNum","fName","fDate","fTitle"].forEach(function(k){ d.f[k]=$("#"+k).value });
+    QAS.forEach(function(q){ d.q[q.k]=$("#"+q.k).value });
+    try{ localStorage.setItem(KEY,JSON.stringify(d)); flash() }
+    catch(e){ msg("no","저장 공간이 부족하다. 사진을 몇 장 줄여 보자.") }
+  },400);
+}
+function flash(){ var t=$("#savedTip"); t.classList.add("show"); setTimeout(function(){t.classList.remove("show")},900) }
+function load(){
+  var raw=null; try{ raw=localStorage.getItem(KEY) }catch(e){}
+  var d=null; if(raw){ try{ d=JSON.parse(raw) }catch(e){} }
+  if(d){
+    S.rub=d.rub||{}; S.photos=d.photos||[];
+    Object.keys(d.f||{}).forEach(function(k){ if($("#"+k)) $("#"+k).value=d.f[k] });
+    Object.keys(d.q||{}).forEach(function(k){ if($("#"+k)) $("#"+k).value=d.q[k] });
+    if(d.kind) setKind(d.kind);
+    drawPhotos();
+    QAS.forEach(function(q){
+      var ta=$("#"+q.k), n=ta.value.trim().length, c=$("#c_"+q.k);
+      c.textContent=n+"자 (권장 "+q.min+"자 이상)"; c.className="cnt"+(n>=q.min?" ok":"");
+      autoGrow(ta);
+    });
+    syncPrint();
+  }
+  // URL에서 넘어온 실습 종류
+  var from=new URLSearchParams(location.search).get("from");
+  if(from==="pixhawk"||from==="arduino") setKind(from);
+  if(!S.kind) drawRubric();
+  if(!$("#fDate").value){
+    var t=new Date(), p=function(n){return (n<10?"0":"")+n};
+    $("#fDate").value=t.getFullYear()+"-"+p(t.getMonth()+1)+"-"+p(t.getDate());
+  }
+}
+["fDept","fGrade","fCls","fNum","fName","fDate","fTitle"].forEach(function(k){
+  $("#"+k).addEventListener("input",save);
+});
+
+/* ── 인쇄 · 제출 · 초기화 ── */
+$("#btnPrint").addEventListener("click",function(){
+  if(!S.kind){ msg("no","실습 종류를 먼저 골라 주세요."); return; }
+  syncPrint();
+  setTimeout(function(){ window.print() },120);
+});
+$("#btnClear").addEventListener("click",function(){
+  if(!confirm("작성한 보고서를 전부 지울까요? 되돌릴 수 없습니다.")) return;
+  try{ localStorage.removeItem(KEY) }catch(e){}
+  location.reload();
+});
+function msg(c,t){ var e=$("#subMsg"); e.className="msg "+(c||""); e.textContent=t }
+
+if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
+  $("#btnSubmit").style.display="block";
+  $("#btnSubmit").addEventListener("click",function(){
+    if(!S.kind){ msg("no","실습 종류를 먼저 골라 주세요."); return; }
+    var empty=QAS.filter(function(q){ return $("#"+q.k).value.trim().length<20 });
+    if(empty.length){ msg("no","아직 덜 쓴 항목이 있다 — "+empty.map(function(q){return q.l}).join(", ")); return; }
+    var body=QAS.map(function(q){ return "["+q.l+"] "+$("#"+q.k).value.trim().replace(/\s+/g," ") }).join("  //  ");
+    if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
+    ResultCollector.open({
+      score: total(),
+      correct: QAS.length-empty.length,
+      total: QAS.length,
+      wrong: (S.kind==="pixhawk"?"[픽스호크] ":"[아두이노] ")+body,
+      durationSec: 0,
+      labels:{score:"자기평가 점수",correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"보고서 내용"}
+    });
+    msg("ok","제출 창을 열었다. 반·번호를 넣고 보내면 된다. (사진은 인쇄본으로 내자)");
+  });
+}
+
+load(); drawPhotos();
+})();
+</script>
+</body>
+</html>

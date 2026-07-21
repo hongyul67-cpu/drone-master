@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>드론 만들기 게임 · 픽스호크 상용FC 드론 제작</title>
+<style>
+  :root{
+    --bg:#0b1220; --panel:#111a2e; --panel2:#16213c; --line:#243456;
+    --ink:#eaf1ff; --sub:#9db0d6; --muted:#6f83ac;
+    --brand:#38bdf8; --brand2:#22d3ee; --good:#34d399; --bad:#fb7185;
+    --gold:#fbbf24; --violet:#a78bfa;
+    --shadow:0 14px 40px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #14264a 0%, var(--bg) 55%) fixed;
+    color:var(--ink); font-family:"Malgun Gothic",system-ui,"Segoe UI",Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent; line-height:1.55;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:16px 14px 90px}
+  h1,h2,h3{margin:0}
+  .btn{cursor:pointer;border:0;border-radius:12px;font-weight:800;font-family:inherit}
+  .btn:active{transform:translateY(1px)}
+
+  header.top{
+    display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px;
+    background:linear-gradient(120deg,#0e1b38,#122a52);border:1px solid var(--line);
+    border-radius:18px;box-shadow:var(--shadow)
+  }
+  .logo{font-size:34px;filter:drop-shadow(0 4px 8px rgba(56,189,248,.4))}
+  header.top .t1{font-size:13px;color:var(--brand);font-weight:800;letter-spacing:.5px}
+  header.top .t2{font-size:20px;font-weight:900}
+  header.top .t3{font-size:12px;color:var(--sub);margin-top:2px}
+
+  .steps{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:16px}
+  .step{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:9px 3px;text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden
+  }
+  .step .ico{font-size:19px;display:block}
+  .step .lb{font-size:10.5px;font-weight:800;color:var(--sub);margin-top:2px;line-height:1.2}
+  .step.on{background:linear-gradient(135deg,#0ea5e9,#2563eb);border-color:transparent}
+  .step.on .lb{color:#fff}
+  .step.done::after{content:"✓";position:absolute;top:3px;right:5px;color:var(--good);font-weight:900;font-size:12px}
+  .step.locked{opacity:.45}
+
+  section.panel{display:none;animation:fade .25s ease}
+  section.panel.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+  .lead{font-size:14px;color:var(--sub);margin:4px 0 0}
+  .sectitle{display:flex;align-items:center;gap:9px;font-size:18px;font-weight:900;margin-bottom:4px;flex-wrap:wrap}
+  .sectitle .pill{font-size:11px;background:#0b3a52;color:var(--brand2);padding:3px 9px;border-radius:999px;font-weight:800}
+  .hint{background:#0d1a33;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--sub);margin-top:12px}
+  .hint b{color:var(--gold)}
+
+  /* 부품 도감 */
+  .parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
+  .part{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;transition:.15s;text-align:center}
+  .part:hover{border-color:var(--brand)}
+  .part .pico{font-size:30px}
+  .part .pname{font-size:13px;font-weight:900;margin-top:4px}
+  .part.seen{border-color:var(--good);background:#132a2c}
+  .part.seen::after{content:" ✓";color:var(--good);font-weight:900}
+  .detail{margin-top:12px;background:#0d1a33;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:96px}
+  .detail h4{margin:0 0 6px;font-size:16px;color:var(--brand2)}
+  .detail ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--sub)}
+  .detail li{margin-bottom:4px}
+
+  /* 공통 선택 버튼 */
+  .opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .opt{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:9px 13px;border-radius:11px;font-size:13px;font-weight:700}
+  .opt:hover{border-color:var(--brand)}
+  .opt.sel{background:linear-gradient(135deg,#0ea5e9,#2563eb);border-color:transparent;color:#fff}
+  .opt.ok{background:#12402f;border-color:var(--good);color:#a7f3d0}
+  .opt.no{background:#43121f;border-color:var(--bad);color:#fecdd3}
+  .opt.used{opacity:.35;pointer-events:none}
+
+  /* 순서 게임 */
+  .seq{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .seqslot{display:flex;align-items:center;gap:10px;background:#0d1a33;border:1px solid var(--line);border-radius:11px;padding:9px 12px;font-size:13.5px;min-height:44px}
+  .seqslot .no{width:24px;height:24px;flex:none;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-size:12px;font-weight:900;color:var(--sub)}
+  .seqslot.filled .no{background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff}
+  .seqslot.bad{border-color:var(--bad)}
+
+  /* 쿼드 도해 */
+  .quad{position:relative;width:100%;max-width:320px;aspect-ratio:1;margin:14px auto;background:
+     radial-gradient(circle at 50% 50%, #16305c 0%, #0d1a33 70%);border:1px solid var(--line);border-radius:20px}
+  .quad .body{position:absolute;left:50%;top:50%;width:22%;height:22%;transform:translate(-50%,-50%);background:#1e3a68;border:1px solid var(--brand);border-radius:8px;display:grid;place-items:center;font-size:11px;font-weight:900;color:var(--brand2)}
+  .quad .arm{position:absolute;left:50%;top:50%;width:34%;height:6px;background:#2b436f;transform-origin:0 50%;border-radius:3px}
+  .slot{position:absolute;width:60px;height:60px;margin:-30px 0 0 -30px;border-radius:50%;
+        background:var(--panel2);border:2px dashed var(--line);display:grid;place-items:center;
+        font-size:11px;font-weight:900;color:var(--muted);cursor:pointer;text-align:center;line-height:1.15}
+  .slot:hover{border-color:var(--brand)}
+  .slot.filled{border-style:solid;border-color:var(--brand);background:#16305c;color:var(--ink)}
+  .slot.ok{border-style:solid;border-color:var(--good);background:#12402f;color:#a7f3d0}
+  .slot.ok .lab{color:#6ee7b7}
+  .slot.no{border-style:solid;border-color:var(--bad);background:#43121f;color:#fecdd3}
+  .slot .lab{font-size:10px;color:var(--muted);display:block;font-weight:700}
+  .p-fl{left:22%;top:22%} .p-fr{left:78%;top:22%} .p-rl{left:22%;top:78%} .p-rr{left:78%;top:78%}
+  .frontmark{position:absolute;left:50%;top:6px;transform:translateX(-50%);font-size:11px;color:var(--gold);font-weight:900}
+
+  /* 결선 */
+  .wires{display:grid;gap:8px;margin-top:10px}
+  .wire{display:flex;align-items:center;gap:10px;background:#0d1a33;border:1px solid var(--line);border-radius:11px;padding:10px 12px;cursor:pointer;font-size:13px}
+  .wire:hover{border-color:var(--brand)}
+  .wire.sel{border-color:var(--brand);background:#16305c}
+  .wire.ok{border-color:var(--good);background:#12402f}
+  .wire .wico{font-size:18px}
+  .wire .wname{font-weight:800;flex:1}
+  .wire .wtarget{font-size:12px;color:var(--good);font-weight:800}
+  .ports{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+  .port{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:11px;padding:10px;font-size:12.5px;font-weight:800;text-align:center}
+  .port:hover{border-color:var(--brand)}
+  .port.done{opacity:.35;pointer-events:none}
+  .smoke{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  /* 매칭(조종기 채널) */
+  .rows{display:grid;gap:8px;margin-top:10px}
+  .row{display:flex;align-items:center;gap:10px;background:#0d1a33;border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:13px}
+  .row .rk{font-weight:900;color:var(--brand2);min-width:52px}
+  .row .rv{flex:1;color:var(--muted)}
+  .row.sel{border-color:var(--brand);background:#16305c}
+  .row.ok{border-color:var(--good);background:#12402f}
+  .row.ok .rv{color:#a7f3d0;font-weight:800}
+
+  /* 비행 시뮬 */
+  .simgrid{display:grid;grid-template-columns:1fr 92px;gap:12px;margin-top:12px}
+  .arena{position:relative;aspect-ratio:1;background:
+      linear-gradient(0deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/100% 12.5%,
+      linear-gradient(90deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/12.5% 100%,
+      radial-gradient(circle at 50% 50%,#132a52,#0b1428);
+      border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .drone{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;transition:left .12s linear,top .12s linear,transform .12s linear;
+      display:grid;place-items:center;font-size:26px;filter:drop-shadow(0 0 8px rgba(56,189,248,.6))}
+  .pad{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border:2px dashed var(--gold);border-radius:50%;opacity:.6}
+  .goal{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border:2px solid var(--violet);border-radius:50%;display:grid;place-items:center;font-size:16px;color:var(--violet);font-weight:900}
+  .altbar{position:relative;background:#0d1a33;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .altfill{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#0ea5e9,#22d3ee);transition:height .12s linear}
+  .altnum{position:absolute;left:0;right:0;top:8px;text-align:center;font-size:12px;font-weight:900;color:var(--ink);z-index:2}
+  .sticks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .stick{background:#0d1a33;border:1px solid var(--line);border-radius:14px;padding:10px}
+  .stick .sname{font-size:11.5px;font-weight:900;color:var(--brand2);text-align:center;margin-bottom:6px}
+  .dpad{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+  .dpad .btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:11px 0;font-size:14px}
+  .dpad .btn:hover{border-color:var(--brand)}
+  .dpad .sp{visibility:hidden}
+  .telem{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;font-size:12px;text-align:center}
+  .telem div{background:#0d1a33;border:1px solid var(--line);border-radius:10px;padding:8px 4px}
+  .telem b{display:block;font-size:15px;color:var(--brand2);margin-top:2px}
+  .missions{margin-top:12px;display:grid;gap:6px}
+  .mrow{display:flex;gap:8px;align-items:center;background:#0d1a33;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:13px}
+  .mrow.done{border-color:var(--good);background:#12402f;color:#a7f3d0}
+  .mrow.cur{border-color:var(--gold);background:#3a2f10}
+
+  /* 진행바 · 버튼 */
+  .bar{height:9px;background:#0d1a33;border-radius:99px;overflow:hidden;margin-top:12px;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#0ea5e9,#22d3ee);width:0;transition:.3s}
+  .nav{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .bigbtn{flex:1;min-width:150px;background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;padding:14px;font-size:15px}
+  .bigbtn:disabled{opacity:.4;cursor:not-allowed}
+  .bigbtn.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--sub);flex:0 0 auto;min-width:100px}
+  .msg{margin-top:10px;font-size:13.5px;font-weight:800;min-height:20px}
+  .msg.ok{color:var(--good)} .msg.no{color:var(--bad)}
+
+  /* 결과 */
+  .score{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;text-align:center}
+  .score div{background:#0d1a33;border:1px solid var(--line);border-radius:14px;padding:14px 6px}
+  .score b{display:block;font-size:26px;color:var(--brand2)}
+  .score span{font-size:12px;color:var(--sub)}
+  table.log{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+  table.log th,table.log td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+  table.log th{color:var(--sub);font-size:12px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:900}
+  .badge.g{background:#12402f;color:#a7f3d0} .badge.b{background:#43121f;color:#fecdd3}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="logo">🚁</div>
+    <div>
+      <div class="t1">드론 제작 · Ⅳ영역</div>
+      <div class="t2">드론 만들기 게임 — 픽스호크 상용FC</div>
+      <div class="t3">부품 → 조립 → 결선 → 프로펠러 → 조종기 → 보정 → 시험비행</div>
+    </div>
+  </header>
+
+  <div class="steps" id="steps">
+    <div class="step on" data-go="learn"   ><span class="ico">📖</span><span class="lb">배우기</span></div>
+    <div class="step locked" data-go="frame"><span class="ico">🔩</span><span class="lb">조립</span></div>
+    <div class="step locked" data-go="wire" ><span class="ico">🔌</span><span class="lb">결선</span></div>
+    <div class="step locked" data-go="prop" ><span class="ico">🌀</span><span class="lb">프로펠러</span></div>
+    <div class="step locked" data-go="tx"   ><span class="ico">🎮</span><span class="lb">조종기</span></div>
+    <div class="step locked" data-go="cal"  ><span class="ico">🧭</span><span class="lb">보정</span></div>
+    <div class="step locked" data-go="fly"  ><span class="ico">🛫</span><span class="lb">시험비행</span></div>
+  </div>
+
+  <!-- ══════════ 1. 배우기 ══════════ -->
+  <section class="panel show" id="p-learn">
+    <div class="card">
+      <div class="sectitle">📖 부품 도감 <span class="pill">먼저 정답부터</span></div>
+      <p class="lead">부품 카드를 눌러 역할과 조립 요령을 확인하자. <b>10개를 모두 확인</b>하면 다음으로 넘어갈 수 있다.</p>
+      <div class="parts" id="parts"></div>
+      <div class="detail" id="partDetail">
+        <h4>👆 부품을 눌러보자</h4>
+        <p style="margin:0;font-size:13.5px;color:var(--sub)">여기에 그 부품이 무엇이고, 조립할 때 무엇을 조심해야 하는지 나온다.</p>
+      </div>
+      <div class="bar"><i id="learnBar"></i></div>
+      <div class="nav">
+        <button class="btn bigbtn" data-go="frame" id="toFrame" disabled>🔩 조립 시작 (부품 0/10)</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 2. 조립 ══════════ -->
+  <section class="panel" id="p-frame">
+    <div class="card">
+      <div class="sectitle">🔩 ① 프레임 조립 순서 <span class="pill">순서대로 탭</span></div>
+      <p class="lead">교과서 조립 순서대로 눌러 보자. 순서가 틀리면 다시 시작한다.</p>
+      <div class="seq" id="frameSlots"></div>
+      <div class="opts" id="frameOpts"></div>
+      <div class="msg" id="frameMsg"></div>
+    </div>
+
+    <div class="card">
+      <div class="sectitle">⚙️ ② 모터 번호 배치 <span class="pill">픽스호크 쿼드X</span></div>
+      <p class="lead">픽스호크(ArduPilot) 쿼드X에서 <b>모터 번호</b>는 정해져 있다. 번호를 고른 뒤 자리를 누르자.</p>
+      <div class="quad" id="motorQuad">
+        <div class="frontmark">▲ 기체 앞(FC 화살표)</div>
+        <div class="body">FC</div>
+        <div class="slot p-fl" data-pos="FL"><span>?<span class="lab">앞·왼</span></span></div>
+        <div class="slot p-fr" data-pos="FR"><span>?<span class="lab">앞·오른</span></span></div>
+        <div class="slot p-rl" data-pos="RL"><span>?<span class="lab">뒤·왼</span></span></div>
+        <div class="slot p-rr" data-pos="RR"><span>?<span class="lab">뒤·오른</span></span></div>
+      </div>
+      <div class="opts" id="motorOpts"></div>
+      <div class="msg" id="motorMsg"></div>
+      <div class="hint">💡 헷갈리면 이렇게 외우자 — <b>1번은 앞·오른쪽</b>에서 시작해서 <b>대각선</b>으로 2번, 다시 앞·왼쪽이 3번, 대각선으로 4번. 대각선끼리 같은 번호 묶음(1↔2, 3↔4)이 된다.</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="learn">← 배우기</button>
+        <button class="btn bigbtn" data-go="wire" id="toWire" disabled>🔌 결선 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 3. 결선 ══════════ -->
+  <section class="panel" id="p-wire">
+    <div class="card">
+      <div class="sectitle">🔌 픽스호크 결선하기 <span class="pill">선 탭 → 포트 탭</span></div>
+      <p class="lead">왼쪽 <b>선</b>을 하나 고르고, 아래에서 꽂을 <b>포트</b>를 누르자. 잘못 꽂으면 💨 연기가 난다(오답 기록).</p>
+      <div class="wires" id="wires"></div>
+      <div class="sectitle" style="margin-top:16px;font-size:15px">픽스호크 포트</div>
+      <div class="ports" id="ports"></div>
+      <div class="msg" id="wireMsg"></div>
+      <div class="hint">💡 <b>FC는 진동 감쇠 패드</b>로 고정하고, 화살표가 <b>기체 앞</b>을 향하며, 가능한 한 <b>무게중심</b>에 가깝게 둔다. GPS는 다른 전자장치와 멀리 떨어뜨려야 자기장 간섭이 줄어든다.</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="frame">← 조립</button>
+        <button class="btn bigbtn" data-go="prop" id="toProp" disabled>🌀 프로펠러 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 4. 프로펠러 ══════════ -->
+  <section class="panel" id="p-prop">
+    <div class="card">
+      <div class="sectitle">🌀 프로펠러 방향 맞추기 <span class="pill">CW / CCW</span></div>
+      <p class="lead">모터 번호는 이미 정해졌다. 각 자리에 <b>CW(시계)</b> 프로펠러를 달지 <b>CCW(반시계)</b>를 달지 고르자.</p>
+      <div class="quad" id="propQuad">
+        <div class="frontmark">▲ 기체 앞</div>
+        <div class="body">FC</div>
+        <div class="slot p-fl" data-pos="FL"><span>3번<span class="lab">?</span></span></div>
+        <div class="slot p-fr" data-pos="FR"><span>1번<span class="lab">?</span></span></div>
+        <div class="slot p-rl" data-pos="RL"><span>2번<span class="lab">?</span></span></div>
+        <div class="slot p-rr" data-pos="RR"><span>4번<span class="lab">?</span></span></div>
+      </div>
+      <div class="opts" id="propOpts"></div>
+      <div class="msg" id="propMsg"></div>
+      <div class="hint">💡 <b>대각선끼리 같은 방향</b>으로 돈다. 서로 반대로 도는 짝이 있어야 토크가 상쇄되어 기체가 제자리에서 빙빙 돌지 않는다.<br>
+      💡 규격 <b>5030</b> = 길이 5인치, 피치 3인치. 길이가 길면 양력↑·반응↓, 피치가 크면 속도↑·토크↓.<br>
+      💡 너트로 고정하는 모터는 <b>회전 방향의 반대로</b> 잠가야(셀프락) 돌면서 풀리지 않는다.</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="wire">← 결선</button>
+        <button class="btn bigbtn" data-go="tx" id="toTx" disabled>🎮 조종기 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 5. 조종기 ══════════ -->
+  <section class="panel" id="p-tx">
+    <div class="card">
+      <div class="sectitle">🎮 ① 채널 할당 <span class="pill">FLYSKY = AETR</span></div>
+      <p class="lead">채널 줄을 누르고, 아래에서 알맞은 기능을 고르자.</p>
+      <div class="rows" id="chRows"></div>
+      <div class="opts" id="chOpts"></div>
+      <div class="msg" id="chMsg"></div>
+      <div class="hint">💡 채널 순서는 조종기 브랜드마다 다르다. <b>Flysky = AETR</b>(에일러론·엘리베이터·스로틀·러더), <b>Radiolink·FrSky Taranis = RETA</b>. FC의 순서와 다르면 미션 플래너에서 <b>RCMAP</b>으로 맞춰 준다.</div>
+    </div>
+    <div class="card">
+      <div class="sectitle">🔗 ② 바인딩 순서 <span class="pill">FLYSKY FS-i6X + FS-iA6B</span></div>
+      <p class="lead">수신기와 조종기를 연결하는 순서대로 눌러 보자.</p>
+      <div class="seq" id="bindSlots"></div>
+      <div class="opts" id="bindOpts"></div>
+      <div class="msg" id="bindMsg"></div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="prop">← 프로펠러</button>
+        <button class="btn bigbtn" data-go="cal" id="toCal" disabled>🧭 보정 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 6. 보정 ══════════ -->
+  <section class="panel" id="p-cal">
+    <div class="card">
+      <div class="sectitle">🧭 미션 플래너 세팅 순서 <span class="pill">순서대로 탭</span></div>
+      <p class="lead">조립이 끝난 드론은 컴퓨터에 윈도우를 까는 것처럼 <b>세팅</b>이 필요하다. 미션 플래너에서 하는 순서대로 눌러 보자.</p>
+      <div class="seq" id="calSlots"></div>
+      <div class="opts" id="calOpts"></div>
+      <div class="msg" id="calMsg"></div>
+      <div class="hint">💡 USB 유선은 <b>115200bps</b>, 텔레메트리 무선은 <b>57600bps</b>. 텔레메트리 두 개는 <b>같은 NET ID</b>를 줘야 한다.<br>
+      💡 Fail Safe 전압은 <b>3.5V × 셀 수</b> (예: 3.5×3 = 10.5V).</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="tx">← 조종기</button>
+        <button class="btn bigbtn" data-go="fly" id="toFly" disabled>🛫 시험비행 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ 7. 시험비행 ══════════ -->
+  <section class="panel" id="p-fly">
+    <div class="card">
+      <div class="sectitle">🛫 시험비행 <span class="pill">가상 조종</span></div>
+      <p class="lead">미션을 위에서부터 하나씩 달성하자. 지금 할 일은 <b>노란색</b>으로 표시된다.</p>
+      <div class="missions" id="missions"></div>
+      <div class="simgrid">
+        <div class="arena" id="arena">
+          <div class="pad"></div>
+          <div class="goal" id="goal" style="display:none">G</div>
+          <div class="drone" id="drone">🚁</div>
+        </div>
+        <div class="altbar"><div class="altnum" id="altnum">0.0m</div><div class="altfill" id="altfill" style="height:0%"></div></div>
+      </div>
+      <div class="telem">
+        <div>스로틀<b id="tThr">0%</b></div>
+        <div>고도<b id="tAlt">0.0m</b></div>
+        <div>기수<b id="tHdg">0°</b></div>
+        <div>시동<b id="tArm">DISARM</b></div>
+      </div>
+      <div class="sticks">
+        <div class="stick">
+          <div class="sname">왼쪽 스틱 — 스로틀 / 러더(YAW)</div>
+          <div class="dpad">
+            <button class="btn sp"></button><button class="btn" data-fly="thr+">▲</button><button class="btn sp"></button>
+            <button class="btn" data-fly="yaw-">◀</button><button class="btn sp"></button><button class="btn" data-fly="yaw+">▶</button>
+            <button class="btn sp"></button><button class="btn" data-fly="thr-">▼</button><button class="btn sp"></button>
+          </div>
+        </div>
+        <div class="stick">
+          <div class="sname">오른쪽 스틱 — 엘리베이터 / 에일러론</div>
+          <div class="dpad">
+            <button class="btn sp"></button><button class="btn" data-fly="pit+">▲</button><button class="btn sp"></button>
+            <button class="btn" data-fly="rol-">◀</button><button class="btn sp"></button><button class="btn" data-fly="rol+">▶</button>
+            <button class="btn sp"></button><button class="btn" data-fly="pit-">▼</button><button class="btn sp"></button>
+          </div>
+        </div>
+      </div>
+      <div class="msg" id="flyMsg"></div>
+      <div class="hint">💡 <b>스로틀 50%가 제자리 호버링</b>이다. 50%보다 올리면 상승, 내리면 하강한다. 버튼은 한 번에 10%씩 움직이고, 고도는 시간이 지나면서 계속 변한다.<br>
+      💡 <b>시동(ARM)</b> = 스로틀 최하 + 러더 오른쪽 끝. <b>시동 끄기(DISARM)</b> = 스로틀 최하 + 러더 왼쪽 끝.<br>
+      💡 실제 실습에서는 <b>프로펠러를 반드시 제거한 상태</b>로 먼저 아밍·모터 테스트를 한다.</div>
+      <div class="nav">
+        <button class="btn bigbtn ghost" data-go="cal">← 보정</button>
+        <button class="btn bigbtn" id="toResult" disabled>🏁 결과 보기</button>
+      </div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none">
+      <div class="sectitle">🏁 제작 결과</div>
+      <div class="score">
+        <div><b id="rScore">0</b><span>점수 (100점)</span></div>
+        <div><b id="rMiss">0</b><span>실수 횟수</span></div>
+        <div><b id="rTime">0분</b><span>걸린 시간</span></div>
+      </div>
+      <table class="log"><thead><tr><th>단계</th><th>실수</th><th>결과</th></tr></thead><tbody id="rBody"></tbody></table>
+      <div class="hint" id="rAdvice"></div>
+      <div class="nav">
+        <button class="btn bigbtn" id="btnReport">📝 보고서 쓰러 가기</button>
+        <button class="btn bigbtn ghost" id="btnSubmit" style="display:none">📤 선생님께 제출</button>
+        <button class="btn bigbtn ghost" id="btnRetry">🔄 다시</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 만들기(픽스호크)"></script>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+var START = Date.now();
+var MISS = {frame:0,wire:0,prop:0,tx:0,cal:0,fly:0};   // 단계별 실수
+var DONE = {learn:false,frame:false,wire:false,prop:false,tx:false,cal:false,fly:false};
+
+/* ─────────── 1. 부품 도감 ─────────── */
+var PARTS=[
+ {i:"🔩",n:"프레임 · 암",d:["모터와 프로펠러를 받쳐 주는 뼈대. 팔 부분을 <b>암(Arm) 또는 붐대</b>라고 한다.",
+   "조립 순서: 메인 프레임 → 하판+암 연결 → 랜딩 스키드 → 상판.",
+   "육각 렌치(2·2.5·3mm), 롱노즈 펜치, 니퍼, 납땜 장비가 필요하다."]},
+ {i:"⚙️",n:"BLDC 모터 ×4",d:["프로펠러를 돌려 양력을 만든다. <b>CW 2개 + CCW 2개</b>를 쓴다.",
+   "같은 색 암에 CW·CCW를 하나씩 조립한다. 모터 캡 색으로 구분한다.",
+   "회전 방향은 나중에 <b>ESC 삼선 중 두 선</b>을 바꿔 끼워 수정할 수 있다."]},
+ {i:"🔌",n:"ESC (변속기)",d:["FC의 신호를 받아 <b>모터를 어떤 속도로 돌릴지</b> 결정한다. 모터를 돌리라고 명령하는 건 ESC가 아니라 <b>FC</b>다.",
+   "신호선은 픽스호크 <b>I/O PWM OUT 1~4</b>로, 전원선(빨/검)은 <b>PM07</b>로 간다.",
+   "FC가 보내는 최소·최대값을 알도록 <b>ESC 보정</b>을 해 주어야 한다."]},
+ {i:"🧠",n:"픽스호크 FC",d:["드론의 <b>두뇌</b>. 자이로·가속도·기압·지자기 센서로 자세를 계산해 모터 출력을 조절한다.",
+   "<b>진동 감쇠 폼 패드</b>로 장착하고, 화살표가 <b>기체 앞</b>을 향하게 한다.",
+   "가능한 한 <b>무게중심</b>에 가깝게 놓는다."]},
+ {i:"⚡",n:"PM07 전원 모듈",d:["파워 분배 보드(PDB). 배터리 전력을 <b>4개 ESC에 똑같이</b> 나눠 주고 FC에도 전원을 공급한다.",
+   "PM07 출력 → 픽스호크 <b>POWER</b> 단자에 6선 케이블로 연결.",
+   "PM07 입력(2~12S) → 리포 배터리."]},
+ {i:"📡",n:"텔레메트리",d:["드론과 노트북(미션 플래너)이 <b>무선으로</b> 데이터를 주고받는 장치. 픽스호크의 <b>TELEM1</b>에 꽂는다.",
+   "두 개(기체용·노트북용)를 쓰며 <b>같은 NET ID</b>를 줘야 한다.",
+   "통신 속도는 무선 <b>57600bps</b>, USB 유선은 115200bps."]},
+ {i:"🛰",n:"GPS · 나침반",d:["위치와 방위를 알려 준다. Loiter·RTL·자동비행에 반드시 필요하다.",
+   "<b>다른 전자장치와 멀리</b> 떨어뜨려 마스트 위에 올린다(자기장 간섭 감소).",
+   "GPS 화살표는 <b>FC 화살표와 같은 방향</b>. 외부 GPS를 우선순위 1로 올린다."]},
+ {i:"🎮",n:"수신기 (RX)",d:["조종기 신호를 받아 FC에 전달한다. 먼저 조종기와 <b>바인딩</b>해야 한다.",
+   "<b>S.BUS / DSM</b> 수신기 → DSM/SBUS RC IN 포트. <b>PPM</b> 수신기 → PPM RC IN 포트.",
+   "PWM은 채널마다 선이 따로 필요해 배선이 복잡하고, SBUS는 선 하나로 여러 채널을 보내 빠르고 정확하다."]},
+ {i:"🔋",n:"리포 배터리",d:["리튬 폴리머. <b>1셀 = 정격 3.7V</b>(만충 4.2V / 최소 3.0V). 3셀이면 11.1V.",
+   "높은 방전율(C-rate)이 필요해 드론용 고방전 배터리를 쓴다.",
+   "Fail Safe 저전압은 <b>3.5V × 셀 수</b>로 잡는다(3셀 → 10.5V)."]},
+ {i:"🌀",n:"프로펠러",d:["규격 <b>5030</b> = 길이 5인치, 피치 3인치.",
+   "길이↑ → 양력↑·반응 느림 / 피치↑ → 속도↑·토크↓.",
+   "<b>대각선끼리 같은 방향</b>으로 돌도록 CW·CCW를 짝 맞춰 단다."]}
+];
+(function(){
+  var box=$("#parts");
+  PARTS.forEach(function(p,idx){
+    var el=document.createElement("div");
+    el.className="part"; el.dataset.idx=idx;
+    el.innerHTML='<div class="pico">'+p.i+'</div><div class="pname">'+p.n+'</div>';
+    el.addEventListener("click",function(){
+      el.classList.add("seen");
+      $("#partDetail").innerHTML='<h4>'+p.i+' '+p.n+'</h4><ul><li>'+p.d.join("</li><li>")+'</li></ul>';
+      var n=$$(".part.seen").length;
+      $("#learnBar").style.width=(n/PARTS.length*100)+"%";
+      var b=$("#toFrame");
+      b.textContent = n>=PARTS.length ? "🔩 조립 시작" : "🔩 조립 시작 (부품 "+n+"/"+PARTS.length+")";
+      if(n>=PARTS.length){ b.disabled=false; DONE.learn=true; unlock("frame"); }
+    });
+    box.appendChild(el);
+  });
+})();
+
+/* ─────────── 2-1. 프레임 순서 ─────────── */
+var FRAME_SEQ=["기체 메인 프레임 조립","드론 기체 하판과 암(Arm) 연결","랜딩 스키드 조립","상판 조립"];
+makeSeq({slots:"#frameSlots",opts:"#frameOpts",msg:"#frameMsg",list:FRAME_SEQ,key:"frame",
+  done:function(){ frameOK=true; checkFrame(); }});
+
+/* ─────────── 2-2. 모터 번호 ─────────── */
+var MOTOR_ANS={FR:"1번",RL:"2번",FL:"3번",RR:"4번"};
+var frameOK=false, motorOK=false, pickMotor=null;
+(function(){
+  var box=$("#motorOpts");
+  ["1번","2번","3번","4번"].forEach(function(v){
+    var b=document.createElement("button");
+    b.className="btn opt"; b.textContent="모터 "+v; b.dataset.v=v;
+    b.addEventListener("click",function(){
+      $$("#motorOpts .opt").forEach(function(o){o.classList.remove("sel")});
+      b.classList.add("sel"); pickMotor=v;
+      say("#motorMsg","","모터 "+v+" 선택 — 놓을 자리를 누르세요");
+    });
+    box.appendChild(b);
+  });
+  $$("#motorQuad .slot").forEach(function(s){
+    s.addEventListener("click",function(){
+      if(!pickMotor){ say("#motorMsg","no","먼저 아래에서 모터 번호를 고르세요"); return; }
+      if(s.classList.contains("ok")) return;
+      var pos=s.dataset.pos;
+      if(MOTOR_ANS[pos]===pickMotor){
+        s.classList.add("ok"); s.innerHTML='<span>'+pickMotor+'<span class="lab">'+posName(pos)+'</span></span>';
+        $$("#motorOpts .opt").forEach(function(o){ if(o.dataset.v===pickMotor) o.classList.add("used") });
+        pickMotor=null; say("#motorMsg","ok","좋아! 정확한 자리다");
+        if($$("#motorQuad .slot.ok").length===4){ motorOK=true; checkFrame(); }
+      }else{
+        MISS.frame++; s.classList.add("smoke");
+        setTimeout(function(){s.classList.remove("smoke")},400);
+        say("#motorMsg","no","여기는 "+pickMotor+"이 아니다. 1번=앞·오른쪽부터 대각선 순서!");
+      }
+    });
+  });
+})();
+function posName(p){return {FL:"앞·왼",FR:"앞·오른",RL:"뒤·왼",RR:"뒤·오른"}[p]}
+function checkFrame(){
+  if(frameOK&&motorOK){ DONE.frame=true; $("#toWire").disabled=false; unlock("wire"); mark("frame"); }
+}
+
+/* ─────────── 3. 결선 ─────────── */
+var WIRES=[
+ {i:"🔌",n:"ESC 신호선 1~4",t:"I/O PWM OUT 1~4"},
+ {i:"⚡",n:"ESC 전원선 (빨강·검정)",t:"PM07 전원 모듈"},
+ {i:"🔋",n:"리포 배터리",t:"PM07 입력 (2~12S)"},
+ {i:"🧠",n:"PM07 출력 6선 케이블",t:"POWER"},
+ {i:"📡",n:"텔레메트리",t:"TELEM1"},
+ {i:"🛰",n:"GPS · 나침반",t:"GPS MODULE"},
+ {i:"🎮",n:"S.BUS 수신기",t:"DSM/SBUS RC IN"}
+];
+var PORTS=["POWER","TELEM1","TELEM2","DSM/SBUS RC IN","PPM RC IN","I2C(센서 모듈)","I/O PWM OUT 1~4","GPS MODULE","PM07 전원 모듈","PM07 입력 (2~12S)"];
+var pickWire=null;
+(function(){
+  var wb=$("#wires");
+  WIRES.forEach(function(w,i){
+    var el=document.createElement("div");
+    el.className="wire"; el.dataset.i=i;
+    el.innerHTML='<span class="wico">'+w.i+'</span><span class="wname">'+w.n+'</span><span class="wtarget"></span>';
+    el.addEventListener("click",function(){
+      if(el.classList.contains("ok")) return;
+      $$("#wires .wire").forEach(function(o){o.classList.remove("sel")});
+      el.classList.add("sel"); pickWire=i;
+      say("#wireMsg","", w.n+" 선택 — 꽂을 포트를 누르세요");
+    });
+    wb.appendChild(el);
+  });
+  var pb=$("#ports");
+  PORTS.forEach(function(p){
+    var b=document.createElement("button");
+    b.className="btn port"; b.textContent=p; b.dataset.p=p;
+    b.addEventListener("click",function(){
+      if(pickWire===null){ say("#wireMsg","no","먼저 위에서 연결할 선을 고르세요"); return; }
+      var w=WIRES[pickWire];
+      var el=$('#wires .wire[data-i="'+pickWire+'"]');
+      if(w.t===p){
+        el.classList.remove("sel"); el.classList.add("ok");
+        $(".wtarget",el).textContent="→ "+p;
+        b.classList.add("done"); pickWire=null;
+        say("#wireMsg","ok","연결 완료!");
+        if($$("#wires .wire.ok").length===WIRES.length){
+          DONE.wire=true; $("#toProp").disabled=false; unlock("prop"); mark("wire");
+          say("#wireMsg","ok","🎉 배선 완료! 선을 케이블 타이로 정리하면 진짜 끝.");
+        }
+      }else{
+        MISS.wire++; b.classList.add("smoke");
+        setTimeout(function(){b.classList.remove("smoke")},400);
+        say("#wireMsg","no","💨 연기! "+w.n+"은(는) "+p+"에 꽂는 게 아니다.");
+      }
+    });
+    pb.appendChild(b);
+  });
+})();
+
+/* ─────────── 4. 프로펠러 ─────────── */
+var PROP_ANS={FR:"CCW",RL:"CCW",FL:"CW",RR:"CW"};
+var PROP_NO={FR:"1번",RL:"2번",FL:"3번",RR:"4번"};
+var pickProp=null;
+(function(){
+  var box=$("#propOpts");
+  ["CW","CCW"].forEach(function(v){
+    var b=document.createElement("button");
+    b.className="btn opt"; b.dataset.v=v;
+    b.textContent = v==="CW" ? "🔃 CW 프로펠러 (시계)" : "🔄 CCW 프로펠러 (반시계)";
+    b.addEventListener("click",function(){
+      $$("#propOpts .opt").forEach(function(o){o.classList.remove("sel")});
+      b.classList.add("sel"); pickProp=v;
+      say("#propMsg","",v+" 프로펠러 선택 — 달 자리를 누르세요");
+    });
+    box.appendChild(b);
+  });
+  $$("#propQuad .slot").forEach(function(s){
+    s.addEventListener("click",function(){
+      if(!pickProp){ say("#propMsg","no","먼저 아래에서 프로펠러를 고르세요"); return; }
+      if(s.classList.contains("ok")) return;
+      var pos=s.dataset.pos;
+      if(PROP_ANS[pos]===pickProp){
+        s.classList.add("ok");
+        s.innerHTML='<span>'+PROP_NO[pos]+'<span class="lab">'+pickProp+'</span></span>';
+        say("#propMsg","ok","정확하다!");
+        if($$("#propQuad .slot.ok").length===4){
+          DONE.prop=true; $("#toTx").disabled=false; unlock("tx"); mark("prop");
+          say("#propMsg","ok","🎉 대각선끼리 같은 방향 — 토크가 상쇄된다!");
+        }
+      }else{
+        MISS.prop++; s.classList.add("smoke");
+        setTimeout(function(){s.classList.remove("smoke")},400);
+        say("#propMsg","no","여기에 "+pickProp+"을 달면 기체가 제자리에서 돈다. 대각선끼리 같은 방향!");
+      }
+    });
+  });
+})();
+
+/* ─────────── 5-1. 채널 할당 ─────────── */
+var CH=[
+ {k:"CH1",a:"에일러론 (ROLL · 좌우 이동)"},
+ {k:"CH2",a:"엘리베이터 (PITCH · 전진/후진)"},
+ {k:"CH3",a:"스로틀 (THROTTLE · 상승/하강)"},
+ {k:"CH4",a:"러더 (YAW · 제자리 회전)"},
+ {k:"CH5",a:"비행 모드 (3단 스위치)"},
+ {k:"CH6",a:"PID 세팅"}
+];
+var chOK=false,bindOK=false,pickRow=null;
+(function(){
+  var rb=$("#chRows");
+  CH.forEach(function(c,i){
+    var el=document.createElement("div");
+    el.className="row"; el.dataset.i=i;
+    el.innerHTML='<span class="rk">'+c.k+'</span><span class="rv">? 눌러서 선택</span>';
+    el.addEventListener("click",function(){
+      if(el.classList.contains("ok")) return;
+      $$("#chRows .row").forEach(function(o){o.classList.remove("sel")});
+      el.classList.add("sel"); pickRow=i;
+      say("#chMsg","",c.k+" 선택 — 아래에서 기능을 고르세요");
+    });
+    rb.appendChild(el);
+  });
+  var ob=$("#chOpts");
+  shuffle(CH.map(function(c){return c.a})).forEach(function(a){
+    var b=document.createElement("button");
+    b.className="btn opt"; b.textContent=a; b.dataset.a=a;
+    b.addEventListener("click",function(){
+      if(pickRow===null){ say("#chMsg","no","먼저 위에서 채널을 고르세요"); return; }
+      var c=CH[pickRow], el=$('#chRows .row[data-i="'+pickRow+'"]');
+      if(c.a===a){
+        el.classList.remove("sel"); el.classList.add("ok"); $(".rv",el).textContent=a;
+        b.classList.add("used"); pickRow=null; say("#chMsg","ok","맞다!");
+        if($$("#chRows .row.ok").length===CH.length){ chOK=true; checkTx();
+          say("#chMsg","ok","🎉 AETR 완성! CH5는 미션 플래너에서 비행 모드로 고정되어 있다."); }
+      }else{
+        MISS.tx++; say("#chMsg","no",c.k+"은(는) 그게 아니다. Flysky는 A-E-T-R 순서!");
+      }
+    });
+    ob.appendChild(b);
+  });
+})();
+
+/* ─────────── 5-2. 바인딩 순서 ─────────── */
+var BIND_SEQ=[
+ "수신기 B/VCC 핀에 바인딩 플러그를 꽂는다",
+ "수신기에 5V 전원을 인가한다 (적색 LED 빠르게 점멸)",
+ "조종기의 Bind KEY를 누른 채 조종기 전원을 켠다",
+ "조종기 화면에 RXBind OK — 수신기 적색 LED가 느리게 점멸",
+ "바인딩 플러그를 빼고 수신기 전원을 제거한다",
+ "다시 전원을 넣어 조종기에 TX·RX 표시가 뜨는지 확인한다"
+];
+makeSeq({slots:"#bindSlots",opts:"#bindOpts",msg:"#bindMsg",list:BIND_SEQ,key:"tx",
+  done:function(){ bindOK=true; checkTx(); }});
+function checkTx(){
+  if(chOK&&bindOK){ DONE.tx=true; $("#toCal").disabled=false; unlock("cal"); mark("tx"); }
+}
+
+/* ─────────── 6. 미션 플래너 순서 ─────────── */
+var CAL_SEQ=[
+ "펌웨어 설치 (기체 종류 선택 후 업로드)",
+ "텔레메트리 설정 — NET ID 통일, 57600bps",
+ "가속도계 보정 — 기체를 6방향으로 돌리기",
+ "나침반 보정 — 6방향으로 뒤집으며 회전",
+ "무선 조종 보정 — 스틱·스위치 끝까지 움직이기",
+ "비행 모드 설정 — CH5 3단 스위치에 배정",
+ "ESC 보정 — 스로틀 최대로 전원 인가 후 최소로",
+ "배터리 모니터 설정 — 용량·경고 전압 입력",
+ "모터 테스트 — 프롭 제거 후 2%씩 올리며 확인",
+ "Fail Safe 설정 — 3.5V × 셀 수"
+];
+makeSeq({slots:"#calSlots",opts:"#calOpts",msg:"#calMsg",list:CAL_SEQ,key:"cal",
+  done:function(){ DONE.cal=true; $("#toFly").disabled=false; unlock("fly"); mark("cal"); }});
+
+/* ─────────── 순서 게임 공통 ─────────── */
+function makeSeq(cfg){
+  var slots=$(cfg.slots), opts=$(cfg.opts), n=cfg.list.length, cur=0;
+  function draw(){
+    slots.innerHTML="";
+    for(var i=0;i<n;i++){
+      var d=document.createElement("div");
+      d.className="seqslot"+(i<cur?" filled":"");
+      d.innerHTML='<span class="no">'+(i+1)+'</span><span>'+(i<cur?cfg.list[i]:"…")+'</span>';
+      slots.appendChild(d);
+    }
+  }
+  draw();
+  shuffle(cfg.list.slice()).forEach(function(t){
+    var b=document.createElement("button");
+    b.className="btn opt"; b.textContent=t; b.dataset.t=t;
+    b.addEventListener("click",function(){
+      if(t===cfg.list[cur]){
+        b.classList.add("used"); cur++; draw();
+        if(cur>=n){ say(cfg.msg,"ok","🎉 순서 완벽!"); cfg.done(); }
+        else say(cfg.msg,"ok","맞다! 다음 순서는?");
+      }else{
+        MISS[cfg.key]++;
+        say(cfg.msg,"no","순서가 아니다. 처음부터 다시 해 보자.");
+        cur=0; draw(); $$(".opt",opts).forEach(function(o){o.classList.remove("used")});
+      }
+    });
+    opts.appendChild(b);
+  });
+}
+
+/* ─────────── 7. 시험비행 ─────────── */
+var MISSIONS=[
+ {t:"프로펠러를 제거한 상태인지 확인 — 스로틀을 최하로 내린다", chk:function(F){return F.thr===0&&F.checked}},
+ {t:"시동(ARM) — 스로틀 최하 + 러더 오른쪽 끝",                  chk:function(F){return F.armed}},
+ {t:"이륙 — 고도 1.5m 이상 올리기",                              chk:function(F){return F.alt>=1.5}},
+ {t:"제자리 좌회전 — 기수를 왼쪽으로 90° 돌리기",                 chk:function(F){return F.hdg<=-90}},
+ {t:"전진 — 앞으로 3m 이상 이동",                                 chk:function(F){return F.travel>=3}},
+ {t:"착륙 — 스로틀을 내려 고도 0.2m 이하로",                      chk:function(F){return F.alt<=0.2}},
+ {t:"시동 끄기(DISARM) — 스로틀 최하 + 러더 왼쪽 끝",             chk:function(F){return F.disarmed}}
+];
+var F={thr:0,alt:0,hdg:0,x:0,y:0,travel:0,armed:false,disarmed:false,checked:false,yawHold:0,mi:0,dead:false};
+var flyTimer=null;
+function drawMissions(){
+  var b=$("#missions"); b.innerHTML="";
+  MISSIONS.forEach(function(m,i){
+    var d=document.createElement("div");
+    d.className="mrow"+(i<F.mi?" done":(i===F.mi?" cur":""));
+    d.innerHTML='<span>'+(i<F.mi?"✅":(i===F.mi?"👉":"⬜"))+'</span><span>'+m.t+'</span>';
+    b.appendChild(d);
+  });
+}
+drawMissions();
+$$("[data-fly]").forEach(function(b){
+  b.addEventListener("click",function(){
+    var a=b.dataset.fly;
+    if(F.mi>=MISSIONS.length) return;
+    if(a==="thr+"){ F.thr=Math.min(100,F.thr+10); F.checked=true; }
+    if(a==="thr-"){ F.thr=Math.max(0,F.thr-10); F.checked=true; }
+    if(a==="yaw+"||a==="yaw-"){
+      var dir = a==="yaw+" ? 1 : -1;
+      if(!F.armed && F.thr===0 && dir>0){ F.yawHold++; if(F.yawHold>=2){ F.armed=true; say("#flyMsg","ok","🔊 시동 걸림! 모터가 공회전한다."); } }
+      else if(F.armed && F.alt<=0.2 && F.thr===0 && dir<0){ F.yawHold++; if(F.yawHold>=2){ F.armed=false; F.disarmed=true; say("#flyMsg","ok","시동 꺼짐(DISARM). 안전!"); } }
+      else if(F.armed && F.alt>0.2){ F.hdg += dir*15; F.yawHold=0; }
+      else { F.yawHold=0; }
+    }
+    if((a==="pit+"||a==="pit-")&&F.armed&&F.alt>0.3){
+      var s = a==="pit+" ? 1 : -1, r=F.hdg*Math.PI/180;
+      F.x += Math.sin(r)*0.5*s; F.y -= Math.cos(r)*0.5*s;
+      if(s>0) F.travel += 0.5;
+    }
+    if((a==="rol+"||a==="rol-")&&F.armed&&F.alt>0.3){
+      var s2 = a==="rol+" ? 1 : -1, r2=F.hdg*Math.PI/180;
+      F.x += Math.cos(r2)*0.5*s2; F.y += Math.sin(r2)*0.5*s2;
+    }
+    if(a!=="yaw+"&&a!=="yaw-") F.yawHold=0;
+    if(!F.armed && !F.disarmed && F.thr>0 && F.mi>=1){ /* 시동 없이 스로틀 */ }
+    render();
+  });
+});
+function tick(){
+  if(F.armed){
+    F.alt += (F.thr-50)*0.006;   // 스로틀 50%가 호버링 지점
+    if(F.alt<0) F.alt=0;
+    if(F.alt>8){ F.alt=8; }
+  } else if(F.alt>0){ F.alt=Math.max(0,F.alt-0.15); }
+  render();
+}
+function render(){
+  F.x=Math.max(-6,Math.min(6,F.x)); F.y=Math.max(-6,Math.min(6,F.y));
+  var d=$("#drone");
+  d.style.left=(50+F.x/6*42)+"%"; d.style.top=(50+F.y/6*42)+"%";
+  d.style.transform="rotate("+F.hdg+"deg) scale("+(1+F.alt*0.045)+")";
+  $("#altfill").style.height=(F.alt/8*100)+"%";
+  $("#altnum").textContent=F.alt.toFixed(1)+"m";
+  $("#tThr").textContent=F.thr+"%";
+  $("#tAlt").textContent=F.alt.toFixed(1)+"m";
+  $("#tHdg").textContent=Math.round(F.hdg)+"°";
+  $("#tArm").textContent=F.armed?"ARMED":"DISARM";
+  $("#tArm").style.color=F.armed?"var(--good)":"var(--muted)";
+  // 미션 판정
+  while(F.mi<MISSIONS.length && MISSIONS[F.mi].chk(F)){
+    F.mi++;
+    if(F.mi<MISSIONS.length) say("#flyMsg","ok","✅ 미션 "+F.mi+" 완료!");
+  }
+  drawMissions();
+  if(F.mi>=MISSIONS.length && !DONE.fly){
+    DONE.fly=true; mark("fly"); $("#toResult").disabled=false;
+    say("#flyMsg","ok","🎉 시험비행 성공! 결과 보기를 누르자.");
+    clearInterval(flyTimer);
+  }
+}
+
+/* ─────────── 이동 · 잠금 ─────────── */
+var ORDER=["learn","frame","wire","prop","tx","cal","fly"];
+function unlock(k){ var i=ORDER.indexOf(k); var s=$$("#steps .step")[i]; if(s) s.classList.remove("locked"); }
+function mark(k){ var i=ORDER.indexOf(k); var s=$$("#steps .step")[i]; if(s) s.classList.add("done"); }
+function go(k){
+  $$(".panel").forEach(function(p){p.classList.remove("show")});
+  $("#p-"+k).classList.add("show");
+  $$("#steps .step").forEach(function(s){s.classList.toggle("on",s.dataset.go===k)});
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(k==="fly"){ clearInterval(flyTimer); flyTimer=setInterval(tick,120); render(); }
+  else clearInterval(flyTimer);
+}
+$$("[data-go]").forEach(function(el){
+  el.addEventListener("click",function(){
+    var k=el.dataset.go;
+    if(el.classList.contains("step")&&el.classList.contains("locked")) return;
+    if(el.tagName==="BUTTON"&&el.disabled) return;
+    go(k);
+  });
+});
+
+/* ─────────── 결과 ─────────── */
+var STEPNAME={frame:"프레임·모터 조립",wire:"픽스호크 결선",prop:"프로펠러 방향",tx:"조종기 세팅",cal:"미션 플래너 보정",fly:"시험비행"};
+function showResult(){
+  var keys=Object.keys(STEPNAME);
+  var totalMiss=keys.reduce(function(a,k){return a+MISS[k]},0);
+  var score=Math.max(0,100-totalMiss*4);
+  var mins=Math.max(1,Math.round((Date.now()-START)/60000));
+  $("#rScore").textContent=score;
+  $("#rMiss").textContent=totalMiss;
+  $("#rTime").textContent=mins+"분";
+  var tb=$("#rBody"); tb.innerHTML="";
+  keys.forEach(function(k){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td>"+STEPNAME[k]+"</td><td>"+MISS[k]+"회</td><td>"+
+      (MISS[k]===0?'<span class="badge g">한 번에 성공</span>':'<span class="badge b">복습 필요</span>')+"</td>";
+    tb.appendChild(tr);
+  });
+  var weak=keys.filter(function(k){return MISS[k]>0}).map(function(k){return STEPNAME[k]});
+  $("#rAdvice").innerHTML = weak.length
+    ? "📌 <b>"+weak.join(", ")+"</b> 부분을 다시 확인하자. 보고서에 '어려웠던 점'으로 쓰면 딱 좋다."
+    : "🏆 전 단계를 한 번에 통과했다! 보고서에는 '왜 그 순서여야 하는지'를 설명해 보자.";
+  $("#resultCard").style.display="block";
+  // 보고서로 넘길 기록 저장
+  try{
+    localStorage.setItem("drone_build_pixhawk", JSON.stringify({
+      tool:"픽스호크", score:score, miss:MISS, totalMiss:totalMiss, minutes:mins, at:new Date().toISOString()
+    }));
+  }catch(e){}
+  if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
+    $("#btnSubmit").style.display="block";
+    $("#btnSubmit").onclick=function(){
+      ResultCollector.open({
+        score:score, correct:6-weak.length, total:6, wrong:weak.join(","),
+        durationSec:Math.round((Date.now()-START)/1000),
+        labels:{score:"점수",correct:"한번에 통과한 단계",total:"전체 단계",rate:"통과율(%)",wrong:"실수한 단계"}
+      });
+    };
+  }
+  $("#resultCard").scrollIntoView({behavior:"smooth"});
+}
+$("#toResult").addEventListener("click",showResult);
+$("#btnRetry").addEventListener("click",function(){ location.reload() });
+$("#btnReport").addEventListener("click",function(){
+  var rc=new URLSearchParams(location.search).get("rc");
+  location.href="report.html?from=pixhawk"+(rc?"&rc="+encodeURIComponent(rc):"");
+});
+
+/* ─────────── 유틸 ─────────── */
+function say(sel,cls,txt){ var e=$(sel); e.className="msg "+(cls||""); e.textContent=txt }
+function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t } return a }
+})();
+</script>
+</body>
+</html>

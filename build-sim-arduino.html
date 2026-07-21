@@ -159,6 +159,27 @@
   .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:900}
   .badge.g{background:#12402f;color:#a7f3d0} .badge.b{background:#43121f;color:#fecdd3}
   code{background:#0b1428;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12.5px;color:var(--gold)}
+
+  /* 조립 현황 카드 */
+  .previewcard{padding:14px 16px 10px}
+  .previewcard .bar{margin-top:4px}
+
+  /* 완성 → 이륙 연출 */
+  .flyover{position:fixed;inset:0;z-index:120;display:none;overflow:hidden;
+    background:linear-gradient(180deg,#0b1220 0%,#124036 45%,#1d7a5f 75%,#5ec9a4 100%)}
+  .flyover.show{display:block;animation:foIn .5s ease}
+  @keyframes foIn{from{opacity:0}to{opacity:1}}
+  .flyover .cloud{position:absolute;background:rgba(255,255,255,.16);border-radius:99px;filter:blur(2px);
+    animation:foCloud linear infinite}
+  @keyframes foCloud{from{transform:translateY(0)}to{transform:translateY(120vh)}}
+  .flyover .fotxt{position:absolute;left:0;right:0;top:12%;text-align:center;z-index:2}
+  .flyover .fotxt .big{font-size:30px;font-weight:900;text-shadow:0 4px 18px rgba(0,0,0,.5)}
+  .flyover .fotxt .sm{font-size:14px;color:#d1fae5;margin-top:6px}
+  .flyover #foDrone{position:absolute;left:50%;top:52%;width:min(70vw,330px);transform:translate(-50%,-50%);z-index:3}
+  .flyover #foDrone .dz{max-width:none}
+  .flyover #foDrone .dz .cap{display:none}
+  .flyover .foclose{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);z-index:4;
+    background:rgba(255,255,255,.92);color:#0b1220;padding:13px 26px;font-size:15px}
 </style>
 </head>
 <body>
@@ -180,6 +201,13 @@
     <div class="step locked" data-go="build"><span class="ico">🔩</span><span class="lb">조립</span></div>
     <div class="step locked" data-go="sw"   ><span class="ico">💻</span><span class="lb">MultiWii</span></div>
     <div class="step locked" data-go="safe" ><span class="ico">🛡️</span><span class="lb">시동·안전</span></div>
+  </div>
+
+  <!-- 조립 현황 드론 (모든 단계에서 보임) -->
+  <div class="card previewcard">
+    <div class="sectitle" style="font-size:15px">🛠️ 내 드론 <span class="pill" id="pvCount">0 / 15 부품</span></div>
+    <div id="pvDrone"></div>
+    <div class="bar"><i id="pvBar"></i></div>
   </div>
 
   <!-- 1. 배우기 -->
@@ -336,7 +364,17 @@
 
 </div>
 
+<div class="flyover" id="flyOver">
+  <div class="fotxt">
+    <div class="big">🎉 드론 완성 — 이륙!</div>
+    <div class="sm">기판을 납땜하고, 프레임을 뽑고, MultiWii까지 올린 내 드론</div>
+  </div>
+  <div id="foDrone"></div>
+  <button class="btn foclose" id="foClose">결과 보기 →</button>
+</div>
+
 <script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 만들기(아두이노)"></script>
+<script src="drone-anim.js"></script>
 <script>
 (function(){
 "use strict";
@@ -346,6 +384,53 @@ var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelect
 var START=Date.now();
 var MISS={pin:0,print:0,build:0,sw:0,safe:0};
 var ORDER=["learn","pin","print","build","sw","safe"];
+
+/* ─────────── 조립 현황 드론 ─────────── */
+var DRONE = DroneAnim.mount($("#pvDrone"), {layout:"multiwii", caption:"아직 아무것도 안 붙었다"});
+var BUILT={}, PART_TOTAL=15;
+var PART_CAP={
+  fc:"아두이노 나노 FC 기판 완성", wire:"결선표대로 배선 완료", rx:"수신기 연결", batt:"3셀 리포 장착",
+  frame:"3D 출력한 프레임 조립", skid:"랜딩 기어 부착",
+  m1:"1번 모터(CW) 장착", m2:"2번 모터(CCW) 장착", m3:"3번 모터(CW) 장착", m4:"4번 모터(CCW) 장착",
+  p1:"1번 프로펠러", p2:"2번 프로펠러", p3:"3번 프로펠러", p4:"4번 프로펠러", gps:"센서 보드 장착"
+};
+function attach(name){
+  if(BUILT[name]) return;
+  BUILT[name]=true;
+  DRONE.part(name,true);
+  var n=Object.keys(BUILT).length;
+  $("#pvCount").textContent=n+" / "+PART_TOTAL+" 부품";
+  $("#pvBar").style.width=Math.min(100,n/PART_TOTAL*100)+"%";
+  DRONE.caption(PART_CAP[name]||"조립 중");
+  if(n>=PART_TOTAL){ DRONE.caption("🎉 조립 완료! 이제 세팅만 하면 난다").done().spin(1); }
+}
+
+/* 완성 이륙 연출 */
+var ALLPARTS=["frame","skid","batt","m1","m2","m3","m4","fc","wire","gps","tele","rx","p1","p2","p3","p4"];
+function celebrate(){
+  var fo=$("#flyOver");
+  fo.classList.add("show");
+  for(var i=0;i<9;i++){
+    var c=document.createElement("div");
+    c.className="cloud";
+    var w=40+Math.random()*130;
+    c.style.width=w+"px"; c.style.height=(w*0.32)+"px";
+    c.style.left=(Math.random()*92)+"%"; c.style.top=(-20-Math.random()*60)+"%";
+    c.style.animationDuration=(3.5+Math.random()*4)+"s";
+    c.style.animationDelay=(Math.random()*2.5)+"s";
+    fo.appendChild(c);
+  }
+  var FO=DroneAnim.mount($("#foDrone"),{layout:"multiwii",caption:""});
+  ALLPARTS.forEach(function(p){ FO.part(p,true) });
+  FO.spin(2);
+  setTimeout(function(){ FO.takeoff() },900);
+  DRONE.spin(2); DRONE.takeoff();
+}
+$("#foClose").addEventListener("click",function(){
+  $("#flyOver").classList.remove("show");
+  DRONE.land().spin(0).caption("착륙 완료 — 수고했다!");
+  showResult();
+});
 
 /* ── 1. 부품 도감 ── */
 var PARTS=[
@@ -433,6 +518,7 @@ var pickSig=null;
       if(s.p===p){
         el.classList.remove("sel"); el.classList.add("ok");
         $(".sp",el).textContent="→ "+p; b.classList.add("done"); pickSig=null;
+        pinGroupCheck();
         say("#pinMsg","ok","연결!");
         if($$("#sigs .sig.ok").length===SIGS.length){
           $("#toPrint").disabled=false; unlock("print"); mark("pin");
@@ -447,6 +533,15 @@ var pickSig=null;
     pb.appendChild(b);
   });
 })();
+/* 결선이 한 묶음씩 끝날 때마다 드론에 부품이 붙는다 */
+function pinGroupCheck(){
+  var names=$$("#sigs .sig.ok").map(function(el){ return $(".sn",el).textContent });
+  var has=function(pre){ return names.filter(function(n){ return n.indexOf(pre)===0 }).length };
+  if(has("모터(ESC)")===4) attach("wire");
+  if(has("수신기")===6)    attach("rx");
+  if(has("I2C")===2)       attach("gps");
+  if(has("LED")===1)       attach("fc");
+}
 
 /* ── 3. 3D 출력 설정 ── */
 var SETS=[
@@ -476,7 +571,8 @@ var SETS=[
           say("#printMsg","ok",s.l+" 설정 완료!");
           if($$("#setrows .setrow.ok").length===SETS.length){
             $("#toBuild").disabled=false; unlock("build"); mark("print");
-            say("#printMsg","ok","🎉 슬라이싱 설정 완료! G코드로 저장해 출력하자.");
+            attach("frame"); attach("skid");
+            say("#printMsg","ok","🎉 슬라이싱 설정 완료! 출력한 프레임이 드론에 붙었다.");
           }
         }else{
           MISS.print++; row.classList.add("shake");
@@ -513,6 +609,7 @@ var pickEsc=null, escOK=false, asmOK=false;
       if(ESC_ANS[pos]===pickEsc){
         s.classList.add("ok");
         s.innerHTML='<span>'+ESC_NO[pos]+'<span class="lab">'+pickEsc+'</span></span>';
+        attach("m"+parseInt(ESC_NO[pos],10));
         say("#escMsg","ok","맞다!");
         if($$("#escQuad .slot.ok").length===4){ escOK=true; checkBuild();
           say("#escMsg","ok","🎉 CW는 직결, CCW는 교차 — 모두 정확!"); }
@@ -546,8 +643,10 @@ var ASM=[
       if(c.ok){
         el.classList.add("on"); say("#asmMsg","ok","맞는 설명이다!");
         var need=ASM.filter(function(x){return x.ok}).length;
-        if($$("#asmChecks .chk.on").length===need){ asmOK=true; checkBuild();
-          say("#asmMsg","ok","🎉 맞는 설명을 모두 찾았다!"); }
+        if($$("#asmChecks .chk.on").length===need){
+          asmOK=true; checkBuild();
+          attach("batt"); ["p1","p2","p3","p4"].forEach(attach);
+          say("#asmMsg","ok","🎉 맞는 설명을 모두 찾았다! 배터리와 프로펠러까지 달았다."); }
       }else{
         MISS.build++; el.classList.add("shake");
         setTimeout(function(){el.classList.remove("shake")},400);
@@ -654,7 +753,13 @@ var SAFE=[
     box.appendChild(el);
   });
 })();
-function checkSafe(){ if(escSeqOK&&modeOK&&safeOK){ mark("safe"); $("#toResult").disabled=false; } }
+var celebrated=false;
+function checkSafe(){
+  if(escSeqOK&&modeOK&&safeOK){
+    mark("safe"); $("#toResult").disabled=false;
+    if(!celebrated){ celebrated=true; celebrate(); }
+  }
+}
 
 /* ── 순서 게임 공통 ── */
 function makeSeq(cfg){
@@ -705,7 +810,8 @@ $$("[data-go]").forEach(function(el){
 
 /* ── 결과 ── */
 var STEPNAME={pin:"FC 기판 핀 결선",print:"3D 출력 설정",build:"모터·ESC 조립",sw:"MultiWii 세팅",safe:"보정·비행 모드·안전"};
-$("#toResult").addEventListener("click",function(){
+$("#toResult").addEventListener("click",showResult);
+function showResult(){
   var keys=Object.keys(STEPNAME);
   var totalMiss=keys.reduce(function(a,k){return a+MISS[k]},0);
   var score=Math.max(0,100-totalMiss*4);
@@ -739,7 +845,7 @@ $("#toResult").addEventListener("click",function(){
     };
   }
   $("#resultCard").scrollIntoView({behavior:"smooth"});
-});
+}
 $("#btnRetry").addEventListener("click",function(){ location.reload() });
 $("#btnReport").addEventListener("click",function(){
   var rc=new URLSearchParams(location.search).get("rc");

@@ -135,8 +135,12 @@
       linear-gradient(90deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/12.5% 100%,
       radial-gradient(circle at 50% 50%,#132a52,#0b1428);
       border:1px solid var(--line);border-radius:16px;overflow:hidden}
-  .drone{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;transition:left .12s linear,top .12s linear,transform .12s linear;
-      display:grid;place-items:center;font-size:26px;filter:drop-shadow(0 0 8px rgba(56,189,248,.6))}
+  .drone{position:absolute;width:58px;height:58px;margin:-29px 0 0 -29px;transition:left .12s linear,top .12s linear,transform .12s linear;
+      filter:drop-shadow(0 0 8px rgba(56,189,248,.6))}
+  .drone .dz{max-width:none;width:100%;aspect-ratio:1}
+  .drone .dz .cap,.drone .dz .shadow{display:none}
+  #foDrone .dz{max-width:none}
+  #foDrone .dz .cap{display:none}
   .pad{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border:2px dashed var(--gold);border-radius:50%;opacity:.6}
   .goal{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border:2px solid var(--violet);border-radius:50%;display:grid;place-items:center;font-size:16px;color:var(--violet);font-weight:900}
   .altbar{position:relative;background:#0d1a33;border:1px solid var(--line);border-radius:16px;overflow:hidden}
@@ -177,6 +181,25 @@
   table.log th{color:var(--sub);font-size:12px}
   .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:900}
   .badge.g{background:#12402f;color:#a7f3d0} .badge.b{background:#43121f;color:#fecdd3}
+
+  /* 조립 현황 카드 */
+  .previewcard{padding:14px 16px 10px}
+  .previewcard .bar{margin-top:4px}
+
+  /* 완성 → 이륙 연출 */
+  .flyover{position:fixed;inset:0;z-index:120;display:none;overflow:hidden;
+    background:linear-gradient(180deg,#0b1220 0%,#153a6b 45%,#2b6fae 75%,#63a6d8 100%)}
+  .flyover.show{display:block;animation:foIn .5s ease}
+  @keyframes foIn{from{opacity:0}to{opacity:1}}
+  .flyover .cloud{position:absolute;background:rgba(255,255,255,.16);border-radius:99px;filter:blur(2px);
+    animation:foCloud linear infinite}
+  @keyframes foCloud{from{transform:translateY(0)}to{transform:translateY(120vh)}}
+  .flyover .fotxt{position:absolute;left:0;right:0;top:12%;text-align:center;z-index:2}
+  .flyover .fotxt .big{font-size:30px;font-weight:900;text-shadow:0 4px 18px rgba(0,0,0,.5)}
+  .flyover .fotxt .sm{font-size:14px;color:#dbeafe;margin-top:6px}
+  .flyover #foDrone{position:absolute;left:50%;top:52%;width:min(70vw,330px);transform:translate(-50%,-50%);z-index:3}
+  .flyover .foclose{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);z-index:4;
+    background:rgba(255,255,255,.92);color:#0b1220;padding:13px 26px;font-size:15px}
 </style>
 </head>
 <body>
@@ -199,6 +222,13 @@
     <div class="step locked" data-go="tx"   ><span class="ico">🎮</span><span class="lb">조종기</span></div>
     <div class="step locked" data-go="cal"  ><span class="ico">🧭</span><span class="lb">보정</span></div>
     <div class="step locked" data-go="fly"  ><span class="ico">🛫</span><span class="lb">시험비행</span></div>
+  </div>
+
+  <!-- ══════════ 조립 현황 드론 (모든 단계에서 보임) ══════════ -->
+  <div class="card previewcard">
+    <div class="sectitle" style="font-size:15px">🛠️ 내 드론 <span class="pill" id="pvCount">0 / 13 부품</span></div>
+    <div id="pvDrone"></div>
+    <div class="bar"><i id="pvBar"></i></div>
   </div>
 
   <!-- ══════════ 1. 배우기 ══════════ -->
@@ -398,7 +428,17 @@
 
 </div>
 
+<div class="flyover" id="flyOver">
+  <div class="fotxt">
+    <div class="big">🎉 드론 완성 — 이륙!</div>
+    <div class="sm">내가 조립하고, 배선하고, 세팅한 드론이 하늘로 올라간다</div>
+  </div>
+  <div id="foDrone"></div>
+  <button class="btn foclose" id="foClose">결과 보기 →</button>
+</div>
+
 <script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 만들기(픽스호크)"></script>
+<script src="drone-anim.js"></script>
 <script>
 (function(){
 "use strict";
@@ -408,6 +448,60 @@ var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelect
 var START = Date.now();
 var MISS = {frame:0,wire:0,prop:0,tx:0,cal:0,fly:0};   // 단계별 실수
 var DONE = {learn:false,frame:false,wire:false,prop:false,tx:false,cal:false,fly:false};
+
+/* ─────────── 조립 현황 드론 ─────────── */
+var DRONE = DroneAnim.mount($("#pvDrone"), {layout:"pixhawk", caption:"아직 아무것도 안 붙었다"});
+var BUILT = {};                       // 붙인 부품
+var PART_TOTAL = 13;                  // 프레임 + 모터4 + FC + GPS + 텔레메트리 + 수신기 + 프로펠러4
+var PART_CAP = {
+  frame:"프레임을 세웠다", m1:"1번 모터 장착", m2:"2번 모터 장착", m3:"3번 모터 장착", m4:"4번 모터 장착",
+  fc:"픽스호크를 얹었다", gps:"GPS를 세웠다", tele:"텔레메트리 연결", rx:"수신기 연결",
+  p1:"1번 프로펠러", p2:"2번 프로펠러", p3:"3번 프로펠러", p4:"4번 프로펠러"
+};
+function attach(name){
+  if(BUILT[name]) return;
+  BUILT[name]=true;
+  DRONE.part(name,true);
+  if(name==="frame"){ DRONE.part("skid",true); DRONE.part("batt",true); }
+  if(name==="fc") DRONE.part("wire",true);
+  var n=Object.keys(BUILT).length;
+  $("#pvCount").textContent=n+" / "+PART_TOTAL+" 부품";
+  $("#pvBar").style.width=(n/PART_TOTAL*100)+"%";
+  DRONE.caption(PART_CAP[name]||"조립 중");
+  if(n>=PART_TOTAL){ DRONE.caption("🎉 조립 완료! 이제 세팅만 하면 난다").done().spin(1); }
+}
+/* 아레나 안의 작은 드론 */
+var MINI = DroneAnim.mount($("#drone"), {layout:"pixhawk", caption:""});
+["frame","skid","batt","m1","m2","m3","m4","fc","wire","gps","tele","rx","p1","p2","p3","p4"]
+  .forEach(function(p){ MINI.part(p,true) });
+var flyLevel = -1;
+
+/* 완성 이륙 연출 */
+function celebrate(){
+  var fo=$("#flyOver");
+  fo.classList.add("show");
+  for(var i=0;i<9;i++){
+    var c=document.createElement("div");
+    c.className="cloud";
+    var w=40+Math.random()*130;
+    c.style.width=w+"px"; c.style.height=(w*0.32)+"px";
+    c.style.left=(Math.random()*92)+"%"; c.style.top=(-20-Math.random()*60)+"%";
+    c.style.animationDuration=(3.5+Math.random()*4)+"s";
+    c.style.animationDelay=(Math.random()*2.5)+"s";
+    fo.appendChild(c);
+  }
+  var FO=DroneAnim.mount($("#foDrone"),{layout:"pixhawk",caption:""});
+  ["frame","skid","batt","m1","m2","m3","m4","fc","wire","gps","tele","rx","p1","p2","p3","p4"]
+    .forEach(function(p){ FO.part(p,true) });
+  FO.spin(2);
+  setTimeout(function(){ FO.takeoff() },900);
+  DRONE.takeoff();
+}
+$("#foClose").addEventListener("click",function(){
+  $("#flyOver").classList.remove("show");
+  DRONE.land().spin(0).caption("착륙 완료 — 수고했다!");
+  showResult();
+});
 
 /* ─────────── 1. 부품 도감 ─────────── */
 var PARTS=[
@@ -464,7 +558,7 @@ var PARTS=[
 /* ─────────── 2-1. 프레임 순서 ─────────── */
 var FRAME_SEQ=["기체 메인 프레임 조립","드론 기체 하판과 암(Arm) 연결","랜딩 스키드 조립","상판 조립"];
 makeSeq({slots:"#frameSlots",opts:"#frameOpts",msg:"#frameMsg",list:FRAME_SEQ,key:"frame",
-  done:function(){ frameOK=true; checkFrame(); }});
+  done:function(){ frameOK=true; attach("frame"); checkFrame(); }});
 
 /* ─────────── 2-2. 모터 번호 ─────────── */
 var MOTOR_ANS={FR:"1번",RL:"2번",FL:"3번",RR:"4번"};
@@ -489,6 +583,7 @@ var frameOK=false, motorOK=false, pickMotor=null;
       if(MOTOR_ANS[pos]===pickMotor){
         s.classList.add("ok"); s.innerHTML='<span>'+pickMotor+'<span class="lab">'+posName(pos)+'</span></span>';
         $$("#motorOpts .opt").forEach(function(o){ if(o.dataset.v===pickMotor) o.classList.add("used") });
+        attach("m"+parseInt(pickMotor,10));
         pickMotor=null; say("#motorMsg","ok","좋아! 정확한 자리다");
         if($$("#motorQuad .slot.ok").length===4){ motorOK=true; checkFrame(); }
       }else{
@@ -509,10 +604,10 @@ var WIRES=[
  {i:"🔌",n:"ESC 신호선 1~4",t:"I/O PWM OUT 1~4"},
  {i:"⚡",n:"ESC 전원선 (빨강·검정)",t:"PM07 전원 모듈"},
  {i:"🔋",n:"리포 배터리",t:"PM07 입력 (2~12S)"},
- {i:"🧠",n:"PM07 출력 6선 케이블",t:"POWER"},
- {i:"📡",n:"텔레메트리",t:"TELEM1"},
- {i:"🛰",n:"GPS · 나침반",t:"GPS MODULE"},
- {i:"🎮",n:"S.BUS 수신기",t:"DSM/SBUS RC IN"}
+ {i:"🧠",n:"PM07 출력 6선 케이블",t:"POWER",part:"fc"},
+ {i:"📡",n:"텔레메트리",t:"TELEM1",part:"tele"},
+ {i:"🛰",n:"GPS · 나침반",t:"GPS MODULE",part:"gps"},
+ {i:"🎮",n:"S.BUS 수신기",t:"DSM/SBUS RC IN",part:"rx"}
 ];
 var PORTS=["POWER","TELEM1","TELEM2","DSM/SBUS RC IN","PPM RC IN","I2C(센서 모듈)","I/O PWM OUT 1~4","GPS MODULE","PM07 전원 모듈","PM07 입력 (2~12S)"];
 var pickWire=null;
@@ -542,6 +637,7 @@ var pickWire=null;
         el.classList.remove("sel"); el.classList.add("ok");
         $(".wtarget",el).textContent="→ "+p;
         b.classList.add("done"); pickWire=null;
+        if(w.part) attach(w.part);
         say("#wireMsg","ok","연결 완료!");
         if($$("#wires .wire.ok").length===WIRES.length){
           DONE.wire=true; $("#toProp").disabled=false; unlock("prop"); mark("wire");
@@ -582,6 +678,7 @@ var pickProp=null;
       if(PROP_ANS[pos]===pickProp){
         s.classList.add("ok");
         s.innerHTML='<span>'+PROP_NO[pos]+'<span class="lab">'+pickProp+'</span></span>';
+        attach("p"+parseInt(PROP_NO[pos],10));
         say("#propMsg","ok","정확하다!");
         if($$("#propQuad .slot.ok").length===4){
           DONE.prop=true; $("#toTx").disabled=false; unlock("tx"); mark("prop");
@@ -771,6 +868,12 @@ function render(){
   $("#tHdg").textContent=Math.round(F.hdg)+"°";
   $("#tArm").textContent=F.armed?"ARMED":"DISARM";
   $("#tArm").style.color=F.armed?"var(--good)":"var(--muted)";
+  // 조립 현황 드론도 같이 움직인다
+  var lv = !F.armed ? 0 : (F.alt>0.3 ? 2 : 1);
+  if(lv!==flyLevel){
+    flyLevel=lv; DRONE.spin(lv); MINI.spin(lv);
+    DRONE.caption(lv===0?"착륙 상태":(lv===1?"시동 걸림 — 모터 공회전":"비행 중!"));
+  }
   // 미션 판정
   while(F.mi<MISSIONS.length && MISSIONS[F.mi].chk(F)){
     F.mi++;
@@ -781,6 +884,7 @@ function render(){
     DONE.fly=true; mark("fly"); $("#toResult").disabled=false;
     say("#flyMsg","ok","🎉 시험비행 성공! 결과 보기를 누르자.");
     clearInterval(flyTimer);
+    celebrate();
   }
 }
 

@@ -38,6 +38,7 @@
   a.card .tag{font-size:10.5px;font-weight:800;background:#0b3a52;color:var(--brand2);padding:2px 8px;border-radius:99px}
   a.card.violet .tag{background:#2e1f57;color:#c4b5fd}
   a.card.green .tag{background:#0b3a30;color:#6ee7b7}
+  a.card.orange .tag{background:#4a2410;color:#fdba74}
 
   .note{background:var(--panel);border:1px dashed var(--line);border-radius:14px;padding:14px;
     font-size:12.5px;color:var(--sub);margin-top:18px}
@@ -73,6 +74,12 @@
         <div class="cd">부품 도감 → FC 기판 핀 결선 → 3D 출력 설정 → 모터·ESC 조립 → MultiWii 세팅 → ESC 보정·안전 점검</div>
         <div class="tags"><span class="tag">Ⅲ영역</span><span class="tag">6단계</span><span class="tag">결선표</span></div>
       </a>
+      <a class="card orange" href="build-mission-device.html" data-link>
+        <div class="ci">📦</div>
+        <div class="cn">임무 수행 장치</div>
+        <div class="cd">에어 드롭 장치와 2축 카메라 짐벌 — 인벤터 모델링 순서 → 출력 설정 → <b>서보 제어로 물건 투하</b> → 조종기 연결</div>
+        <div class="tags"><span class="tag">Ⅴ영역</span><span class="tag">서보모터</span><span class="tag">3D 출력</span></div>
+      </a>
     </div>
   </div>
 
@@ -89,13 +96,43 @@
   </div>
 
   <div class="group">
-    <div class="gt">📖 이론 학습</div>
+    <div class="gt">📖 이론 학습 · 6차시</div>
     <div class="cards">
+      <a class="card" href="01-drone-overview.html" data-link>
+        <div class="ci">🛩️</div>
+        <div class="cn">1차시 · 드론 개요</div>
+        <div class="cd">용어(UAV·UAS·RPAS) · 고정익/회전익/틸트로터/하이브리드 · 파이어비부터 글로벌 호크까지</div>
+        <div class="tags"><span class="tag">분류게임</span><span class="tag">기체카드</span><span class="tag">학습지 12문항</span></div>
+      </a>
+      <a class="card" href="02-flight-principle.html" data-link>
+        <div class="ci">🪂</div>
+        <div class="cn">2차시 · 드론의 비행 원리</div>
+        <div class="cd">양력·중력·추력·항력 / 스로틀·엘리베이터·에일러론·러더 — <b>드론을 직접 조종해 보며</b> 익힌다</div>
+        <div class="tags"><span class="tag">힘 도해</span><span class="tag">조종 실습</span><span class="tag">학습지 12문항</span></div>
+      </a>
       <a class="card" href="03-drone-structure.html" data-link>
         <div class="ci">🔧</div>
         <div class="cn">3차시 · 드론의 구성</div>
         <div class="cd">프레임 · 송수신기 · 제어부(FC) · 구동부 · 배터리 · 프로펠러 · 페이로드</div>
-        <div class="tags"><span class="tag">Ⅰ영역</span><span class="tag">배우기+게임+학습지</span></div>
+        <div class="tags"><span class="tag">조립게임</span><span class="tag">센서게임</span><span class="tag">학습지</span></div>
+      </a>
+      <a class="card" href="04-drone-law.html" data-link>
+        <div class="ci">⚖️</div>
+        <div class="cn">4차시 · 법규와 조종자 준수사항</div>
+        <div class="cd">초경량비행장치 · 조종자 증명 1~4종(250g·2kg·7kg·25kg) · 준수사항</div>
+        <div class="tags"><span class="tag">무게등급</span><span class="tag">준수사항</span><span class="tag">학습지 12문항</span></div>
+      </a>
+      <a class="card" href="05-battery-sensor-check.html" data-link>
+        <div class="ci">🔋</div>
+        <div class="cn">5차시 · 배터리 · 센서 · 검사</div>
+        <div class="cd">리포 3.7V · 센서 5종 · 안전성인증검사 4가지 · 비행승인 · 벌칙</div>
+        <div class="tags"><span class="tag">센서매칭</span><span class="tag">검사분류</span><span class="tag">학습지 12문항</span></div>
+      </a>
+      <a class="card" href="06-registration-airspace.html" data-link>
+        <div class="ci">🗺️</div>
+        <div class="cn">6차시 · 기체 신고번호와 공역</div>
+        <div class="cd">신고번호 C/N · M/H/P/S · 공역 A~G · 관제/비관제/통제/주의공역</div>
+        <div class="tags"><span class="tag">신고번호</span><span class="tag">공역등급</span><span class="tag">학습지 12문항</span></div>
       </a>
     </div>
   </div>
@@ -105,7 +142,7 @@
   <div class="note">
     💡 <b>선생님께</b> — 주소 뒤에 <code>?rc=&lt;내 Apps Script exec 주소&gt;</code>를 붙여 나눠 주면
     학생이 낸 결과가 선생님 구글 시트로 모입니다. 이 페이지의 카드 링크에도 자동으로 붙습니다.<br>
-    💡 이론 1·2·4·5·6차시는 준비 중입니다.
+    💡 <b>추천 순서</b> — 이론 1~6차시로 개념을 잡고 → 만들기 게임으로 조립을 익히고 → 임무 장치까지 붙인 뒤 → 실습 보고서를 씁니다.
   </div>
 
 </div>

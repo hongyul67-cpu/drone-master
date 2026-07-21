@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>2차시 · 드론의 비행 원리</title>
+<link rel="stylesheet" href="lesson.css">
+<style>
+  /* 조종 실습 화면 */
+  .simwrap{display:grid;grid-template-columns:1fr 84px;gap:12px;margin-top:12px}
+  .arena{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    background:linear-gradient(0deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/100% 12.5%,
+               linear-gradient(90deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/12.5% 100%,
+               radial-gradient(circle at 50% 50%,#132a52,#0b1428)}
+  .arena .pad{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;
+    border:2px dashed var(--gold);border-radius:50%;opacity:.5}
+  .dsprite{position:absolute;width:74px;height:74px;margin:-37px 0 0 -37px;
+    transition:left .5s ease,top .5s ease,transform .5s ease}
+  .dsprite .dz{max-width:none;width:100%;aspect-ratio:1}
+  .dsprite .dz .cap,.dsprite .dz .shadow{display:none}
+  .altbar{position:relative;background:#0d1a33;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .altfill{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(0deg,#0ea5e9,#22d3ee);
+    height:0;transition:height .5s ease}
+  .altnum{position:absolute;left:0;right:0;top:8px;text-align:center;font-size:12px;font-weight:900;z-index:2}
+  .ctrls{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px}
+  .ctrl{background:#0d1a33;border:1px solid var(--line);border-radius:13px;padding:11px;text-align:left;
+    color:var(--ink);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+  .ctrl:hover{border-color:var(--brand)}
+  .ctrl .cw{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+  .ctrl.shake{animation:shk .4s}
+  .mission{background:#3a2f10;border:1px solid #7c5b12;border-radius:13px;padding:12px 14px;
+    font-size:14px;font-weight:800;color:#fde68a;margin-top:12px}
+  .mission .mn{font-size:11.5px;color:#d6b45c;font-weight:700;display:block;margin-bottom:2px}
+  /* 힘 4개 도해 */
+  .forces{position:relative;width:100%;max-width:330px;aspect-ratio:1;margin:14px auto;
+    background:radial-gradient(circle at 50% 50%,#16305c,#0d1a33);border:1px solid var(--line);border-radius:18px}
+  .forces .fc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:38px}
+  .fslot{position:absolute;width:82px;height:40px;margin:-20px 0 0 -41px;border:2px dashed var(--line);
+    border-radius:11px;display:grid;place-items:center;font-size:12px;font-weight:900;color:var(--muted);cursor:pointer}
+  .fslot:hover{border-color:var(--brand)}
+  .fslot.ok{border-style:solid;border-color:var(--good);background:#12402f;color:#a7f3d0}
+  .fslot.shake{animation:shk .4s}
+  .f-up{left:50%;top:14%} .f-dn{left:50%;top:86%} .f-fw{left:80%;top:50%} .f-bk{left:20%;top:50%}
+  .farrow{position:absolute;color:var(--brand);font-size:20px}
+  .a-up{left:50%;top:27%;transform:translateX(-50%)} .a-dn{left:50%;top:71%;transform:translateX(-50%)}
+  .a-fw{left:67%;top:50%;transform:translateY(-50%)} .a-bk{left:29%;top:50%;transform:translateY(-50%)}
+</style>
+</head>
+<body>
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 2차시 비행 원리"></script>
+<script src="drone-anim.js"></script>
+<script src="lesson.js"></script>
+<script>
+Lesson.start({
+ id:"02", logo:"🪂",
+ tag:"드론 제작 · 2차시", name:"드론의 비행 원리",
+ sub:"네 가지 힘 → 조종 용어 → 직접 조종 → 학습지",
+ steps:[
+
+ {key:"learn", ico:"📖", label:"배우기", type:"cards",
+  intro:"드론에 작용하는 네 가지 힘과, 조종기 스틱 네 가지를 먼저 확실히 익히자.",
+  data:[
+   {i:"⬆️", n:"양력 (Lift)", d:[
+     "드론을 <b>위로 들어 올리는</b> 힘. 프로펠러가 공기를 아래로 밀어내면서 생긴다.",
+     "드론의 무게와 <b>반대</b> 방향으로 작용한다.",
+     "양력이 <b>중력보다 커야</b> 드론이 <b>상승</b>한다. 같으면 제자리(호버링), 작으면 하강."]},
+   {i:"⬇️", n:"중력 (Gravity)", d:[
+     "드론의 <b>무게</b> 때문에 생기는 힘. 항상 <b>지구 중심(아래)</b>을 향한다.",
+     "양력보다 중력이 <b>크면</b> 드론은 뜨지 못한다.",
+     "그래서 프레임을 가볍게 만드는 <b>경량화</b>가 중요하다."]},
+   {i:"➡️", n:"추력 (Thrust)", d:[
+     "드론을 <b>앞으로 나아가게</b> 하는 힘. 프로펠러가 공기를 밀어내며 만든다.",
+     "멀티콥터는 기체를 <b>기울여서</b> 양력의 일부를 앞 방향 추력으로 바꾼다.",
+     "그래서 앞으로 가려면 기체가 앞으로 살짝 기운다."]},
+   {i:"⬅️", n:"항력 (Drag)", d:[
+     "추력과 <b>반대 방향</b>으로 작용하는 힘. 전진할 때 공기와 부딪히며 생기는 <b>저항</b>이다.",
+     "항력이 추력보다 <b>크면</b> 드론은 앞으로 나아갈 수 없다.",
+     "형상 저항·마찰 저항·간섭 저항·유도 항력으로 나눌 수 있다."]},
+   {i:"🕹️", n:"스로틀 (Throttle)", d:[
+     "모터 <b>속도</b>를 조절한다.",
+     "올리면 모터가 <b>빠르게</b> 회전해 <b>상승</b>, 내리면 <b>하강</b>한다.",
+     "조종기 <b>왼쪽 스틱 위아래</b>. 시동을 걸 때는 반드시 <b>맨 아래</b>로 내린다."]},
+   {i:"↕️", n:"엘리베이터 (Elevator)", d:[
+     "드론의 <b>피치(Pitch)</b> — 앞뒤로 기울어지는 각도 — 를 조절한다.",
+     "앞으로 기울이면 <b>전진</b>, 뒤로 기울이면 <b>후진</b>한다.",
+     "조종기 <b>오른쪽 스틱 위아래</b>."]},
+   {i:"↔️", n:"에일러론 (Aileron)", d:[
+     "드론의 <b>롤(Roll)</b> — 좌우로 기울어지는 각도 — 를 조절한다.",
+     "오른쪽으로 기울이면 <b>오른쪽으로</b>, 왼쪽으로 기울이면 <b>왼쪽으로</b> 이동한다.",
+     "조종기 <b>오른쪽 스틱 좌우</b>. 기수 방향은 그대로인 채 옆으로 미끄러진다."]},
+   {i:"🔃", n:"러더 (Rudder)", d:[
+     "드론의 <b>요(Yaw)</b> — 수직축을 중심으로 도는 각도 — 를 조절한다.",
+     "제자리에서 <b>시계 방향 / 반시계 방향</b>으로 기수를 돌린다.",
+     "조종기 <b>왼쪽 스틱 좌우</b>. 위치는 그대로, <b>바라보는 방향</b>만 바뀐다."]},
+   {i:"⚖️", n:"토크 상쇄", d:[
+     "프로펠러가 한 방향으로만 돌면 그 반작용으로 <b>기체가 반대로 돈다</b>.",
+     "그래서 <b>대각선끼리 같은 방향</b>, 옆끼리는 반대 방향으로 돌게 만든다.",
+     "이렇게 하면 회전하려는 힘이 서로 <b>상쇄</b>되어 기수가 제멋대로 돌지 않는다."]},
+   {i:"🧭", n:"호버링 (Hovering)", d:[
+     "제자리에 <b>가만히 떠 있는</b> 상태.",
+     "<b>양력 = 중력</b>이 되는 지점이다. 스로틀이 대략 절반쯤일 때 만들어진다.",
+     "바람이 불면 자세가 흐트러지므로 FC가 센서를 읽어 계속 보정해 준다."]}
+  ]},
+
+ {key:"force", ico:"🧲", label:"네 가지 힘", type:"custom",
+  render:function(sec,api){
+   var ANS={up:"양력",dn:"중력",fw:"추력",bk:"항력"};
+   var card=api.el("div","card");
+   card.appendChild(api.el("div","sectitle",'🧲 네 가지 힘 놓기 <span class="pill">힘 → 방향</span>'));
+   card.appendChild(api.el("p","lead","아래에서 힘을 하나 고르고, 그 힘이 작용하는 방향의 빈칸을 누르자."));
+   card.innerHTML += ''
+    +'<div class="forces">'
+    +  '<div class="fc">🚁</div>'
+    +  '<div class="farrow a-up">↑</div><div class="farrow a-dn">↓</div>'
+    +  '<div class="farrow a-fw">→</div><div class="farrow a-bk">←</div>'
+    +  '<div class="fslot f-up" data-k="up">위쪽 ?</div>'
+    +  '<div class="fslot f-dn" data-k="dn">아래쪽 ?</div>'
+    +  '<div class="fslot f-fw" data-k="fw">앞쪽 ?</div>'
+    +  '<div class="fslot f-bk" data-k="bk">뒤쪽 ?</div>'
+    +'</div>'
+    +'<div class="opts" id="fOpts"></div><div class="msg" id="m-force"></div>'
+    +'<div class="hint">💡 <b>양력 &gt; 중력</b> → 상승, <b>양력 = 중력</b> → 호버링, <b>양력 &lt; 중력</b> → 하강.<br>'
+    +'💡 <b>추력 &gt; 항력</b>이어야 앞으로 나아간다.</div>';
+   sec.appendChild(card);
+   var pick=null, left=4;
+   api.shuffle(["양력","중력","추력","항력"]).forEach(function(v){
+     var b=api.el("button","btn opt",v);
+     b.addEventListener("click",function(){
+       Array.prototype.forEach.call(card.querySelectorAll("#fOpts .opt"),function(o){o.classList.remove("sel")});
+       b.classList.add("sel"); pick={v:v,b:b};
+       api.say("#m-force","",v+" 선택 — 작용하는 방향을 누르세요");
+     });
+     card.querySelector("#fOpts").appendChild(b);
+   });
+   Array.prototype.forEach.call(card.querySelectorAll(".fslot"),function(s){
+     s.addEventListener("click",function(){
+       if(!pick){ api.say("#m-force","no","먼저 아래에서 힘을 고르세요"); return }
+       if(s.classList.contains("ok")) return;
+       if(ANS[s.dataset.k]===pick.v){
+         s.classList.add("ok"); s.textContent=pick.v; pick.b.classList.add("used"); pick=null; left--;
+         api.say("#m-force","ok","맞다!");
+         if(left===0){ api.say("#m-force","ok","🎉 네 가지 힘을 모두 놓았다!"); api.done() }
+       }else{
+         api.miss(); s.classList.add("shake");
+         setTimeout(function(){s.classList.remove("shake")},400);
+         api.say("#m-force","no","그 방향이 아니다. 다시 생각해 보자.");
+       }
+     });
+   });
+   api.nav();
+  }},
+
+ {key:"stick", ico:"🕹️", label:"직접 조종", type:"custom",
+  render:function(sec,api){
+   var MIS=[
+    {t:"드론을 <b>위로 올려</b> 보자",            k:"thr+", w:"스로틀을 올리면 모터가 빨라져 상승한다"},
+    {t:"드론을 <b>앞으로</b> 나아가게 하자",       k:"ele+", w:"엘리베이터로 피치를 앞으로 기울이면 전진한다"},
+    {t:"드론을 <b>뒤로</b> 물러나게 하자",         k:"ele-", w:"엘리베이터를 반대로 하면 후진한다"},
+    {t:"기수는 그대로 두고 <b>오른쪽으로 이동</b>", k:"ail+", w:"에일러론으로 롤을 오른쪽으로 기울이면 옆으로 간다"},
+    {t:"제자리에서 <b>왼쪽으로 90° 회전</b>",      k:"rud-", w:"러더는 위치는 그대로 두고 바라보는 방향만 바꾼다"},
+    {t:"드론을 <b>착륙</b>시키자",                k:"thr-", w:"스로틀을 내리면 양력이 줄어 하강한다"}
+   ];
+   var BTN=[
+    {k:"thr+", n:"스로틀 ▲", w:"왼쪽 스틱 위 · 모터 속도↑"},
+    {k:"thr-", n:"스로틀 ▼", w:"왼쪽 스틱 아래 · 모터 속도↓"},
+    {k:"ele+", n:"엘리베이터 ▲", w:"오른쪽 스틱 위 · 피치 앞으로"},
+    {k:"ele-", n:"엘리베이터 ▼", w:"오른쪽 스틱 아래 · 피치 뒤로"},
+    {k:"ail+", n:"에일러론 ▶", w:"오른쪽 스틱 오른쪽 · 롤 우측"},
+    {k:"ail-", n:"에일러론 ◀", w:"오른쪽 스틱 왼쪽 · 롤 좌측"},
+    {k:"rud+", n:"러더 ▶", w:"왼쪽 스틱 오른쪽 · 요 시계방향"},
+    {k:"rud-", n:"러더 ◀", w:"왼쪽 스틱 왼쪽 · 요 반시계방향"}
+   ];
+   var card=api.el("div","card");
+   card.innerHTML=''
+    +'<div class="sectitle">🕹️ 직접 조종해 보기 <span class="pill">시키는 대로</span></div>'
+    +'<p class="lead">위에 나오는 지시대로 <b>알맞은 조작</b>을 누르자. 맞으면 드론이 실제로 그렇게 움직인다.</p>'
+    +'<div class="mission" id="mis"></div>'
+    +'<div class="simwrap">'
+    +  '<div class="arena" id="arena"><div class="pad"></div><div class="dsprite" id="dsp"></div></div>'
+    +  '<div class="altbar"><div class="altnum" id="altnum">0.0m</div><div class="altfill" id="altfill"></div></div>'
+    +'</div>'
+    +'<div class="ctrls" id="ctrls"></div>'
+    +'<div class="msg" id="m-stick"></div>'
+    +'<div class="hint">💡 <b>러더</b>는 자리를 옮기지 않고 <b>바라보는 방향</b>만 바꾼다. <b>에일러론</b>은 방향은 그대로 둔 채 <b>옆으로</b> 미끄러진다. 이 둘을 헷갈리지 말자.</div>';
+   sec.appendChild(card);
+
+   var D=DroneAnim.mount(card.querySelector("#dsp"),{layout:"pixhawk",caption:""});
+   ["frame","skid","batt","m1","m2","m3","m4","fc","wire","gps","tele","rx","p1","p2","p3","p4"]
+     .forEach(function(p){ D.part(p,true) });
+   var S={x:0,y:0,alt:0,hdg:0,mi:0};
+   function draw(){
+     var d=card.querySelector("#dsp");
+     d.style.left=(50+S.x/5*40)+"%"; d.style.top=(50+S.y/5*40)+"%";
+     d.style.transform="rotate("+S.hdg+"deg)";
+     card.querySelector("#altfill").style.height=(S.alt/5*100)+"%";
+     card.querySelector("#altnum").textContent=S.alt.toFixed(1)+"m";
+     D.spin(S.alt>0.2?2:0);
+   }
+   function showMis(){
+     var m=MIS[S.mi];
+     card.querySelector("#mis").innerHTML = m
+       ? '<span class="mn">미션 '+(S.mi+1)+' / '+MIS.length+'</span>'+m.t
+       : '<span class="mn">완료</span>🎉 여섯 가지 조작을 모두 익혔다!';
+   }
+   draw(); showMis();
+   BTN.forEach(function(b){
+     var el=api.el("button","btn ctrl",b.n+'<span class="cw">'+b.w+'</span>');
+     el.addEventListener("click",function(){
+       var m=MIS[S.mi];
+       if(!m) return;
+       if(b.k!==m.k){
+         api.miss(); el.classList.add("shake");
+         setTimeout(function(){el.classList.remove("shake")},400);
+         api.say("#m-stick","no","그 조작이 아니다. 지시를 다시 읽어 보자.");
+         return;
+       }
+       var r=S.hdg*Math.PI/180;
+       if(b.k==="thr+") S.alt=Math.min(5,S.alt+2);
+       if(b.k==="thr-") S.alt=Math.max(0,S.alt-2.5);
+       if(b.k==="ele+"){ S.x+=Math.sin(r)*2; S.y-=Math.cos(r)*2 }
+       if(b.k==="ele-"){ S.x-=Math.sin(r)*2; S.y+=Math.cos(r)*2 }
+       if(b.k==="ail+"){ S.x+=Math.cos(r)*2; S.y+=Math.sin(r)*2 }
+       if(b.k==="ail-"){ S.x-=Math.cos(r)*2; S.y-=Math.sin(r)*2 }
+       if(b.k==="rud+") S.hdg+=90;
+       if(b.k==="rud-") S.hdg-=90;
+       S.x=Math.max(-5,Math.min(5,S.x)); S.y=Math.max(-5,Math.min(5,S.y));
+       S.mi++; draw(); showMis();
+       api.say("#m-stick","ok","✅ "+m.w);
+       if(S.mi>=MIS.length){ api.say("#m-stick","ok","🎉 조종 용어를 몸으로 익혔다!"); api.done() }
+     });
+     card.querySelector("#ctrls").appendChild(el);
+   });
+   api.nav();
+  }},
+
+ {key:"axis", ico:"🔗", label:"축 매칭", type:"match",
+  intro:"조종기 용어 · 회전축 · 움직임을 연결하자.",
+  hint:"💡 <b>롤=좌우 기울기</b>, <b>피치=앞뒤 기울기</b>, <b>요=제자리 회전</b>. 영어 이름과 함께 외우면 미션 플래너에서도 바로 보인다.",
+  data:[
+   {k:"스로틀",      a:"모터 속도를 바꿔 상승·하강시킨다"},
+   {k:"엘리베이터",  a:"피치(앞뒤 기울기)를 조절해 전진·후진시킨다"},
+   {k:"에일러론",    a:"롤(좌우 기울기)을 조절해 좌·우로 이동시킨다"},
+   {k:"러더",        a:"요(수직축 회전)를 조절해 제자리에서 기수를 돌린다"},
+   {k:"양력",        a:"드론을 위로 들어 올리는 힘 — 중력보다 커야 상승한다"},
+   {k:"항력",        a:"추력과 반대로 작용하는 공기 저항"}
+  ]},
+
+ {key:"quiz", ico:"✍️", label:"학습지", type:"quiz",
+  intro:"12문제다. 다 풀고 <b>채점하기</b>를 누르자.",
+  data:[
+  {q:"드론을 위로 들어 올리는 힘으로, 드론의 무게와 반대되는 힘은?",
+   a:["양력","중력","추력","항력"], c:0, x:"프로펠러가 공기를 아래로 밀어내며 생긴다."},
+  {q:"드론의 무게 때문에 생기며 항상 아래를 향하는 힘은?",
+   a:["중력","양력","추력","항력"], c:0, x:"양력보다 중력이 크면 드론은 뜨지 못한다."},
+  {q:"항력과 반대 방향으로 작용해 드론을 앞으로 나아가게 하는 힘은?",
+   a:["추력","양력","중력","마찰력"], c:0, x:"멀티콥터는 기체를 기울여 양력의 일부를 추력으로 쓴다."},
+  {q:"드론이 전진할 때 공기와 부딪혀 생기는 저항은?",
+   a:["항력","추력","양력","중력"], c:0, x:"항력이 추력보다 크면 앞으로 나아갈 수 없다."},
+  {q:"드론이 제자리에 가만히 떠 있으려면 어떤 조건이어야 하는가?",
+   a:["양력 = 중력","양력 > 중력","양력 < 중력","추력 = 0"], c:0, x:"두 힘이 같아지는 지점이 호버링이다."},
+  {q:"모터 속도를 조절해 드론을 상승·하강시키는 조종기 용어는?",
+   a:["스로틀","엘리베이터","에일러론","러더"], c:0, x:"조종기 왼쪽 스틱 위아래다."},
+  {q:"드론의 피치(앞뒤 기울기)를 조절해 전진·후진시키는 것은?",
+   a:["엘리베이터","에일러론","러더","스로틀"], c:0, x:"오른쪽 스틱 위아래다."},
+  {q:"드론의 롤(좌우 기울기)을 조절해 좌·우로 이동시키는 것은?",
+   a:["에일러론","엘리베이터","러더","스로틀"], c:0, x:"오른쪽 스틱 좌우다. 기수 방향은 그대로다."},
+  {q:"제자리에서 기수를 시계·반시계 방향으로 돌리는 조종기 용어는?",
+   a:["러더","에일러론","엘리베이터","스로틀"], c:0, x:"수직축 회전을 요(Yaw)라고 한다."},
+  {q:"프로펠러를 대각선끼리 같은 방향으로 돌리는 이유는?",
+   a:["회전하려는 토크를 서로 상쇄해 기수가 제멋대로 돌지 않게 하려고",
+      "양력을 두 배로 키우려고","배터리를 아끼려고","소리를 줄이려고"], c:0,
+   x:"한 방향으로만 돌면 반작용으로 기체가 반대로 돌아 버린다."},
+  {q:"드론이 앞으로 나아갈 때 기체는 어떻게 되는가?",
+   a:["앞으로 살짝 기운다","뒤로 눕는다","기울지 않고 그대로다","옆으로 기운다"], c:0,
+   x:"기울여야 양력의 일부가 앞 방향 추력이 된다."},
+  {q:"프레임을 가볍게 만드는 경량화가 중요한 이유로 가장 알맞은 것은?",
+   a:["중력이 줄어 같은 양력으로도 더 잘 뜨고 오래 날 수 있어서",
+      "색깔이 예뻐져서","프로펠러가 커져서","GPS가 잘 잡혀서"], c:0,
+   x:"양력이 중력보다 커야 뜬다. 무게를 줄이면 그만큼 유리하다."}
+ ]}
+]});
+</script>
+</body>
+</html>

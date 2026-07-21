@@ -241,18 +241,25 @@ function countUp(el,to,ms){
 }
 
 /* ── 클리어 배너 ── */
+var starTimer=null;
 function banner(o){
   inject();
   o=o||{};
   var b=document.getElementById("fxBanner");
+  // 앞 배너가 남긴 별 타이머를 반드시 끈다.
+  // (탭이 백그라운드면 setTimeout이 뭉쳐서 나중에 터지는데, 그러면 이전 배너의
+  //  별 개수가 지금 배너에 덧칠돼 실수를 했는데도 별 3개가 뜬다.)
+  if(starTimer){ clearTimeout(starTimer); starTimer=null; }
   b.querySelector(".bi").textContent=o.icon||"🎉";
   b.querySelector(".bt").textContent=o.title||"단계 완료!";
   b.querySelector(".bs").innerHTML=o.sub||"";
   var stars=b.querySelectorAll(".bstars i");
   var n=(o.stars==null?3:o.stars);
-  Array.prototype.forEach.call(stars,function(s,i){ s.classList.remove("on") });
+  Array.prototype.forEach.call(stars,function(s){ s.classList.remove("on") });
   b.querySelector(".bstars").style.display = o.stars===false ? "none" : "block";
-  setTimeout(function(){
+  void b.offsetWidth;                       // 리플로우로 별 애니메이션을 처음부터 다시
+  starTimer=setTimeout(function(){
+    starTimer=null;
     Array.prototype.forEach.call(stars,function(s,i){ if(i<n) s.classList.add("on") });
   },60);
   var btn=b.querySelector(".bbtn");

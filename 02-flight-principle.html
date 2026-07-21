@@ -49,6 +49,7 @@
 <body>
 <script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 2차시 비행 원리"></script>
 <script src="drone-anim.js"></script>
+<script src="fx.js"></script>
 <script src="lesson.js"></script>
 <script>
 Lesson.start({
@@ -138,11 +139,11 @@ Lesson.start({
        if(s.classList.contains("ok")) return;
        if(ANS[s.dataset.k]===pick.v){
          s.classList.add("ok"); s.textContent=pick.v; pick.b.classList.add("used"); pick=null; left--;
-         api.say("#m-force","ok","맞다!");
+         api.ok(s);
+         api.say("#m-force","ok","맞다!"+(left?" 남은 힘 "+left+"개":""));
          if(left===0){ api.say("#m-force","ok","🎉 네 가지 힘을 모두 놓았다!"); api.done() }
        }else{
-         api.miss(); s.classList.add("shake");
-         setTimeout(function(){s.classList.remove("shake")},400);
+         api.bad(s);
          api.say("#m-force","no","그 방향이 아니다. 다시 생각해 보자.");
        }
      });
@@ -209,8 +210,7 @@ Lesson.start({
        var m=MIS[S.mi];
        if(!m) return;
        if(b.k!==m.k){
-         api.miss(); el.classList.add("shake");
-         setTimeout(function(){el.classList.remove("shake")},400);
+         api.bad(el);
          api.say("#m-stick","no","그 조작이 아니다. 지시를 다시 읽어 보자.");
          return;
        }
@@ -225,6 +225,7 @@ Lesson.start({
        if(b.k==="rud-") S.hdg-=90;
        S.x=Math.max(-5,Math.min(5,S.x)); S.y=Math.max(-5,Math.min(5,S.y));
        S.mi++; draw(); showMis();
+       api.ok(card.querySelector("#dsp"));
        api.say("#m-stick","ok","✅ "+m.w);
        if(S.mi>=MIS.length){ api.say("#m-stick","ok","🎉 조종 용어를 몸으로 익혔다!"); api.done() }
      });

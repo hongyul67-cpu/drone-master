@@ -306,6 +306,7 @@
 <!-- 결과 제출 위젯: ?rc=<선생님 시트주소> 링크로 열면 제출 버튼이 나타납니다 -->
 <script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론기초 3차시 기본구조"></script>
 
+<script src="fx.js"></script>
 <script>
 (function(){
   "use strict";
@@ -446,6 +447,7 @@
       $$(".piece").forEach(function(x){x.classList.remove("sel")}); selPiece=null;
       $("#bScore").textContent=bScore; $("#bStreak").textContent=bStreak;
       $("#bDone").textContent=bDone+"/5";
+      FX.burst(slotEl); FX.punch(slotEl); FX.sound(bStreak>=3?"combo":"ok");
       toast(bStreak>=2?("콤보 x"+bStreak+"! +"+gain):("정답! +"+gain),"good");
       $("#buildHelper").textContent="좋아요! 다음 부품을 고르세요";
       if(bDone>=5) finishBuild();
@@ -454,6 +456,7 @@
       bStreak=0; $("#bStreak").textContent=0;
       slotEl.classList.add("wrong");
       setTimeout(function(){slotEl.classList.remove("wrong")},400);
+      FX.shake(slotEl); FX.flash(); FX.sound("no");
       toast("여긴 아니에요! 역할을 다시 읽어보세요","bad");
     }
   }
@@ -496,10 +499,12 @@
           $$('#sensorCol .mitem[data-id="'+s.id+'"]').forEach(function(x){x.classList.add("matched");x.classList.remove("sel")});
           d.classList.add("matched"); selSensor=null;
           $("#sScore").textContent=sScore; $("#sDone").textContent=sDone+"/5";
+          FX.burst(d); FX.punch(d); FX.sound("ok");
           toast("연결 성공! +20","good");
           if(sDone>=5) finishSensor();
         }else{
           d.classList.add("badflash"); setTimeout(function(){d.classList.remove("badflash")},400);
+          FX.shake(d); FX.flash(); FX.sound("no");
           toast("다시 생각해봐요!","bad");
         }
       });

@@ -39,6 +39,8 @@
 </head>
 <body>
 <script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 임무장치(에어드롭·짐벌)"></script>
+<script src="drone-anim.js"></script>
+<script src="fx.js"></script>
 <script src="lesson.js"></script>
 <script>
 Lesson.start({
@@ -175,11 +177,13 @@ Lesson.start({
            card.querySelector("#arm").style.transform="rotate("+s.ang+"deg)";
            card.querySelector("#angv").textContent=s.ang+"°";
            card.querySelector("#dropbox").classList.toggle("open", s.ang>=90);
+           api.ok(card.querySelector(".dial"));
            api.say("#m-servo","ok","✅ "+s.w);
            si++; setTimeout(show,600);
            if(si>=STEP.length){ api.say("#m-servo","ok","🎉 서보 제어로 투하까지 성공!"); api.done() }
          }else{
-           api.miss(); api.say("#m-servo","no","그 명령이 아니다. 다시 골라 보자.");
+           api.bad(b);
+           api.say("#m-servo","no","그 명령이 아니다. 다시 골라 보자.");
          }
        });
        box.appendChild(b);

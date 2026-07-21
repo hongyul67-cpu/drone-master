@@ -234,6 +234,7 @@
 <div class="saved" id="savedTip">임시저장됨</div>
 
 <script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 제작 보고서"></script>
+<script src="fx.js"></script>
 <script>
 (function(){
 "use strict";
@@ -300,10 +301,23 @@ function drawRubric(){
     row.innerHTML=h+'</div>';
     $$(".btn",row).forEach(function(b){
       b.addEventListener("click",function(){
+        var fresh=!row.classList.contains("filled");
         S.rub[i]=+b.dataset.v;
         $$(".btn",row).forEach(function(x){x.classList.remove("pick")});
         b.classList.add("pick"); row.classList.add("filled");
+        if(window.FX){ FX.punch(b); if(fresh) FX.burst(b,{color:"#a78bfa",n:7,dist:42}); }
         total(); save();
+        var list=RUBRIC[S.kind]||[];
+        if(list.length && $$("#rub .rubrow.filled").length===list.length && window.FX && !S._rubDone){
+          S._rubDone=true;
+          var t=total(), stars=t>=90?3:(t>=70?2:1);
+          setTimeout(function(){
+            FX.banner({icon:"✅",title:"자기평가 완료 · "+t+"점",
+              sub:"솔직하게 매겼다면 그걸로 충분하다.<br>이제 아래 <b>서술형 4문항</b>을 채워 보자.",
+              stars:stars, btn:"보고서 쓰러 가기 →",
+              onClose:function(){ var q=$("#q1"); if(q) q.scrollIntoView({behavior:"smooth",block:"center"}) }});
+          },350);
+        }
       });
     });
     box.appendChild(row);
@@ -356,8 +370,10 @@ function drawRecord(){
     var ta=$("#"+q.k,el), c=$("#c_"+q.k,el);
     ta.addEventListener("input",function(){
       var n=ta.value.trim().length;
+      var was=c.classList.contains("ok");
       c.textContent=n+"자 (권장 "+q.min+"자 이상)";
       c.className="cnt"+(n>=q.min?" ok":"");
+      if(!was && n>=q.min && window.FX){ FX.burst(c,{color:"#34d399",n:8,dist:40}); FX.punch(c); FX.sound("up"); }
       autoGrow(ta); syncPrint(); save();
     });
   });
@@ -476,6 +492,7 @@ if(window.ResultCollector && ResultCollector.config && ResultCollector.config.en
       labels:{score:"자기평가 점수",correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"보고서 내용"}
     });
     msg("ok","제출 창을 열었다. 반·번호를 넣고 보내면 된다. (사진은 인쇄본으로 내자)");
+    if(window.FX) FX.sound("clear");
   });
 }
 

@@ -26,6 +26,36 @@ header.top .t1{font-size:13px;color:var(--brand);font-weight:800;letter-spacing:
 header.top .t2{font-size:20px;font-weight:900}
 header.top .t3{font-size:12px;color:var(--sub);margin-top:2px}
 
+/* ── 진행 활주로: 드론이 진도만큼 날아오른다 ── */
+.flightpath{position:relative;height:132px;margin-bottom:12px;border:1px solid var(--line);
+  border-radius:18px;overflow:hidden;box-shadow:var(--shadow);
+  background:linear-gradient(180deg,#0a1730 0%,#12305c 55%,#1b4a7a 100%)}
+.flightpath .fp-sun{position:absolute;right:16px;top:12px;width:34px;height:34px;border-radius:50%;
+  background:radial-gradient(circle,#fde68a,#f59e0b);opacity:.55;filter:blur(1px)}
+.flightpath .fp-cloud{position:absolute;background:rgba(255,255,255,.13);border-radius:99px;filter:blur(2px)}
+.flightpath .fp-cloud.c1{width:70px;height:16px;left:14%;top:20%;animation:fpc 26s linear infinite}
+.flightpath .fp-cloud.c2{width:46px;height:12px;left:62%;top:36%;animation:fpc 34s linear infinite reverse}
+@keyframes fpc{from{transform:translateX(-30px)}to{transform:translateX(240px)}}
+.flightpath .fp-ground{position:absolute;left:0;right:0;bottom:0;height:22px;background:#14532d;opacity:.75}
+.flightpath .fp-path{position:absolute;left:5%;right:5%;bottom:20px;height:0;
+  border-top:2px dashed rgba(148,197,255,.35)}
+.flightpath .fp-marks{position:absolute;left:0;right:0;bottom:14px;height:14px}
+.flightpath .fp-mark{position:absolute;width:11px;height:11px;margin-left:-5px;border-radius:50%;
+  background:#0d1a33;border:2px solid #3d5588;transition:.35s}
+.flightpath .fp-mark.on{background:var(--good);border-color:var(--good);
+  box-shadow:0 0 10px rgba(52,211,153,.8);transform:scale(1.2)}
+.flightpath .fp-drone{position:absolute;left:6%;bottom:12%;width:64px;height:64px;margin:0 0 -20px -32px;
+  transition:left .9s cubic-bezier(.4,0,.2,1),bottom .9s cubic-bezier(.4,0,.2,1)}
+.flightpath .fp-drone .dz{max-width:none;width:100%;aspect-ratio:1}
+.flightpath .fp-drone .dz .cap{display:none}
+.flightpath .fp-emoji{font-size:32px;text-align:center;line-height:64px}
+.flightpath .fp-pct{position:absolute;left:12px;top:10px;font-size:12px;font-weight:800;color:var(--sub)}
+.flightpath .fp-pct b{font-size:19px;color:var(--brand2);font-weight:900}
+.flightpath.done{background:linear-gradient(180deg,#0a1730 0%,#1b4a7a 45%,#3d86c4 100%)}
+.flightpath.done .fp-pct b{color:var(--good)}
+
+.hudrow{margin-bottom:12px}
+
 .steps{display:grid;gap:6px;margin-bottom:16px}
 .step{background:var(--panel);border:1px solid var(--line);border-radius:12px;
   padding:9px 3px;text-align:center;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
@@ -70,7 +100,10 @@ section.panel.show{display:block}
 .lc .cn{font-size:13px;font-weight:900;margin-top:4px}
 .lc.seen{border-color:var(--good);background:#132a2c}
 .lc.seen::after{content:" ✓";color:var(--good);font-weight:900}
+.lc{transition:.15s,transform .3s}
 .detail{margin-top:12px;background:#0d1a33;border:1px solid var(--line);border-radius:14px;padding:14px;min-height:96px}
+.detail.pop{animation:dpop .35s cubic-bezier(.34,1.5,.64,1)}
+@keyframes dpop{0%{transform:scale(.97);opacity:.4}100%{transform:none;opacity:1}}
 .detail h4{margin:0 0 6px;font-size:16px;color:var(--brand2)}
 .detail ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--sub)}
 .detail li{margin-bottom:4px}

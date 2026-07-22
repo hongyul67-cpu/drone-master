@@ -26,8 +26,10 @@
   header.top .hcloud.b{width:52px;height:11px;left:66%;top:62%;animation-duration:42s;animation-direction:reverse}
   @keyframes hc{from{transform:translateX(-90px)}to{transform:translateX(420px)}}
   .logo{width:76px;height:76px;flex:none;position:relative;z-index:2}
-  .logo .dz{max-width:none;width:100%;aspect-ratio:1}
-  .logo .dz .cap{display:none}
+  /* DroneAnim이 .logo 자신에 .dz(width:100%)를 붙여 로고가 헤더 폭만큼 늘어나던 문제 수정 */
+  .logo.dz{width:76px;height:76px;max-width:none;aspect-ratio:auto;margin:0;overflow:visible}
+  .logo svg{width:100%;height:100%;display:block}
+  .logo .cap{display:none}
   header.top > div:last-child{position:relative;z-index:2}
   /* 카드가 차례로 나타난다 */
   a.card{opacity:0;transform:translateY(10px);animation:cin .5s cubic-bezier(.34,1.4,.64,1) forwards}

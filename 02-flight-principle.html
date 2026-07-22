@@ -7,7 +7,9 @@
 <link rel="stylesheet" href="lesson.css">
 <style>
   /* 조종 실습 화면 */
-  .simwrap{display:grid;grid-template-columns:1fr 84px;gap:12px;margin-top:12px}
+  /* 넓은(데스크톱) 화면에서 정사각 arena가 너무 커져 드론이 화면 밖으로 나가던 문제:
+     조종 영역 최대 폭을 제한해 드론과 조종 버튼이 한 화면에 들어오도록 한다 */
+  .simwrap{display:grid;grid-template-columns:1fr 84px;gap:12px;margin:12px auto 0;max-width:440px}
   .arena{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:16px;overflow:hidden;
     background:linear-gradient(0deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/100% 12.5%,
                linear-gradient(90deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/12.5% 100%,

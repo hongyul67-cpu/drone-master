@@ -129,7 +129,9 @@
   .row.ok .rv{color:#a7f3d0;font-weight:800}
 
   /* 비행 시뮬 */
-  .simgrid{display:grid;grid-template-columns:1fr 92px;gap:12px;margin-top:12px}
+  /* 데스크톱에서 정사각 arena가 너무 커져 드론이 화면 밖으로 나가던 문제:
+     조종 영역 최대 폭 제한으로 드론+조종 스틱이 한 화면에 들어오게 한다 */
+  .simgrid{display:grid;grid-template-columns:1fr 92px;gap:12px;margin:12px auto 0;max-width:460px}
   .arena{position:relative;aspect-ratio:1;background:
       linear-gradient(0deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/100% 12.5%,
       linear-gradient(90deg,rgba(56,189,248,.07) 1px,transparent 1px) 0 0/12.5% 100%,

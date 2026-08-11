@@ -31,6 +31,9 @@
     border-radius:18px;box-shadow:var(--shadow)
   }
   .logo{font-size:34px;filter:drop-shadow(0 4px 8px rgba(56,189,248,.4))}
+  header.top .classbtn{margin-left:auto;flex:none;align-self:flex-start;background:#16233f;
+    border:1px solid #2c4370;color:var(--brand2);padding:8px 13px;font-size:12.5px;white-space:nowrap}
+  header.top .classbtn:hover{border-color:var(--brand)}
   header.top .t1{font-size:13px;color:var(--brand);font-weight:800;letter-spacing:.5px}
   header.top .t2{font-size:20px;font-weight:900}
   header.top .t3{font-size:12px;color:var(--sub);margin-top:2px}
@@ -199,6 +202,7 @@
       <div class="t2">드론의 기본구조</div>
       <div class="t3">배우기 → 조립 → 센서 → 학습지 → 탐구까지!</div>
     </div>
+    <button class="btn classbtn" id="toClass" title="교실 앞 화면에 띄우는 큰 글씨 슬라이드로 전환">🎓 수업용</button>
   </header>
 
   <div class="steps">
@@ -341,6 +345,7 @@
 <script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론기초 3차시 기본구조"></script>
 
 <script src="fx.js"></script>
+<script src="class-mode.js"></script>
 <script>
 (function(){
   "use strict";
@@ -381,6 +386,44 @@
     {q:"지구가 방출하는 자기장을 감지해 드론의 <b>진행 방향</b>을 인식하게 하는 센서는?",o:["지자기 센서","기압 센서","GPS","자이로 센서"],a:0}
   ];
 
+  /* ───────── 수업 모드(?mode=class) ─────────
+     같은 데이터를 교실 앞 화면용 큰 슬라이드로 보여 준다. */
+  if(window.ClassMode && ClassMode.isClass()){
+    var SL=[{t:"cover", ico:"🔧", tag:"드론 제작 · 3차시", title:"드론의 기본구조",
+             sub:"부품 5가지 → 센서 5종 → 함께 풀어 보기"}];
+    SL.push({t:"section", ico:"📖", title:"드론은 무엇으로 이루어질까?",
+             sub:"드론을 이루는 <b>다섯 가지 부품</b>을 하나씩 살펴보자."});
+    PART_KEYS.forEach(function(k){
+      var p=PARTS[k];
+      SL.push({t:"card", ico:p.e, title:p.n+" ("+p.tag+")", lines:[p.role]});
+    });
+    // 조립게임의 역할 설명을 그대로 쓴다(SLOTS는 아래에서 정의되므로 여기서는 직접 적는다)
+    SL.push({t:"rows", ico:"🛠️", title:"어떤 부품이 들어갈까?",
+             sub:"설명을 보고 어떤 부품인지 함께 맞혀 보자.",
+             rows:[
+               {k:"모든 부품이 붙는 뼈대",      v:PARTS.frame.e+" "+PARTS.frame.n},
+               {k:"양력을 내는 추진 장치",      v:PARTS.motor.e+" "+PARTS.motor.n},
+               {k:"모터 회전속도를 제어",       v:PARTS.esc.e+" "+PARTS.esc.n},
+               {k:"명령·센서 처리 두뇌",        v:PARTS.fc.e+" "+PARTS.fc.n},
+               {k:"지면에 닿는 다리",           v:PARTS.landing.e+" "+PARTS.landing.n}
+             ]});
+    SL.push({t:"section", ico:"🎯", title:"비행제어장치(FC) 속 센서들",
+             sub:"FC 안에는 여러 센서가 들어 있다. 각각 <b>무엇을 재는지</b> 알아보자."});
+    SL.push({t:"rows", ico:"🎯", title:"센서는 무엇을 잴까?",
+             sub:"센서 이름을 보고 하는 일을 함께 맞혀 보자.",
+             rows:SENSORS.map(function(s){ return {k:s.e+" "+s.n, v:s.role} })});
+    SL.push({t:"section", ico:"🙋", title:"함께 풀어 보기",
+             sub:"문제를 읽고 <b>스스로 생각한 뒤</b> 발표해 보자. 정답은 선생님이 공개한다."});
+    QUIZ.forEach(function(q,i){ SL.push({t:"quiz", n:i+1, q:q.q, a:q.o, c:q.a, x:""}) });
+    SL.push({t:"section", ico:"🔎", title:"탐구 보고서 (과제 안내)",
+             sub:"관심 있는 드론 <b>한 대</b>를 정해, 그 드론의 <b>기본 구조를 부품별로 조사</b>해 오자."
+                 +"<br><br><span style='font-size:.8em;color:#38bdf8'>검색어 예시 — 드론 이름 + 스펙 · 쿼드콥터 구조 · 드론 FC 종류</span>"});
+    SL.push({t:"end", ico:"🎉", title:"오늘 수업 끝!",
+             sub:"이제 <b>학생 화면</b>에서 조립게임·센서게임·학습지로 직접 확인해 보자."});
+    ClassMode.start({tag:"드론 제작 · 3차시", name:"드론의 기본구조", slides:SL});
+    return;
+  }
+
   /* ───────── 공통 UI ───────── */
   var toastT;
   function toast(msg,kind){
@@ -409,6 +452,11 @@
     });
   });
   function markDone(name){ $$(".step").forEach(function(s){ if(s.dataset.go===name) s.classList.add("done"); }); }
+
+  // 교사용 — 같은 내용을 교실 앞 화면(큰 글씨 슬라이드)으로
+  var tc=$("#toClass");
+  if(tc && window.ClassMode) tc.addEventListener("click",function(){ ClassMode.open() });
+  else if(tc) tc.style.display="none";
 
   /* ───────── 1. 배우기 ───────── */
   var seen={};

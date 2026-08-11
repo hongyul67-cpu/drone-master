@@ -157,6 +157,15 @@
 
   <div class="rcbar" id="rcbar">✅ 선생님 결과 시트에 연결된 링크입니다. 각 도구에 <b>제출 버튼</b>이 나타납니다.</div>
 
+  <div class="note" style="border-color:#2c4370;background:#0e1b38">
+    🎓 <b>수업용 화면</b> — 이론 1~6차시는 교실 앞 화면에 띄우는 <b>큰 글씨 슬라이드</b>로도 볼 수 있습니다.
+    각 차시를 열고 오른쪽 위 <b>🎓 수업용</b>을 누르거나, 아래 스위치를 켜고 카드를 누르세요.<br>
+    <label style="display:inline-flex;align-items:center;gap:8px;margin-top:9px;cursor:pointer;font-weight:800;color:var(--brand2)">
+      <input type="checkbox" id="classToggle" style="width:17px;height:17px;accent-color:#38bdf8">
+      수업용으로 열기 (슬라이드 · 정답 가림/공개 · 타이머)
+    </label>
+  </div>
+
   <div class="note">
     💡 <b>선생님께</b> — 주소 뒤에 <code>?rc=&lt;내 Apps Script exec 주소&gt;</code>를 붙여 나눠 주면
     학생이 낸 결과가 선생님 구글 시트로 모입니다. 이 페이지의 카드 링크에도 자동으로 붙습니다.<br>
@@ -180,13 +189,22 @@
   Array.prototype.slice.call(document.querySelectorAll("a.card")).forEach(function(c,i){
     c.style.animationDelay=(0.05+i*0.055).toFixed(2)+"s";
   });
-  // ?rc= 를 모든 카드 링크에 물려 준다
-  var qs=location.search;
-  if(!qs) return;
-  Array.prototype.slice.call(document.querySelectorAll("a[data-link]")).forEach(function(a){
-    a.setAttribute("href", a.getAttribute("href")+qs);
-  });
-  if(new URLSearchParams(qs).get("rc")) document.getElementById("rcbar").style.display="block";
+  // 수업용 스위치 — 켜면 이론 차시 링크에 ?mode=class 를 붙인다(만들기게임·보고서는 제외)
+  var THEORY=/^0[1-6]-/;
+  var toggle=document.getElementById("classToggle");
+  function paint(){
+    var on=toggle.checked, qs=location.search;
+    Array.prototype.slice.call(document.querySelectorAll("a[data-link]")).forEach(function(a){
+      var base=a.dataset.base || (a.dataset.base=a.getAttribute("href").split("?")[0]);
+      var q=new URLSearchParams(qs);
+      if(on && THEORY.test(base)) q.set("mode","class"); else q.delete("mode");
+      var s=q.toString();
+      a.setAttribute("href", base+(s?"?"+s:""));
+    });
+  }
+  toggle.addEventListener("change",paint);
+  paint();
+  if(new URLSearchParams(location.search).get("rc")) document.getElementById("rcbar").style.display="block";
 })();
 </script>
 </body>

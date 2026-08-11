@@ -29,6 +29,8 @@ function start(cfg){
   CFG=cfg; ORDER=cfg.steps.map(function(s){return s.key});
   cfg.steps.forEach(function(s){ MISS[s.key]=0 });
   document.title=cfg.name+" · 드론 제작";
+  // 수업 모드(?mode=class): 교사가 앞에 띄우는 큰 화면. 같은 데이터를 슬라이드로 보여 준다.
+  if(window.ClassMode && ClassMode.isClass()){ ClassMode.fromLesson(cfg); return }
   var wrap=el("div","wrap");
   document.body.appendChild(wrap);
 
@@ -36,6 +38,11 @@ function start(cfg){
     '<div class="logo">'+(cfg.logo||"🚁")+'</div><div>'+
     '<div class="t1">'+cfg.tag+'</div><div class="t2">'+cfg.name+'</div>'+
     '<div class="t3">'+(cfg.sub||"")+'</div></div>');
+  // 교사용 — 같은 내용을 교실 앞 화면(큰 글씨 슬라이드)으로 띄운다
+  var toClass=el("button","btn classbtn","🎓 수업용");
+  toClass.title="교실 앞 화면에 띄우는 큰 글씨 슬라이드로 전환";
+  toClass.addEventListener("click",function(){ ClassMode.open() });
+  head.appendChild(toClass);
   wrap.appendChild(head);
 
   // 진행을 그림으로 — 드론이 활주로를 따라가며 고도를 올린다

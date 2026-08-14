@@ -365,6 +365,7 @@ function start(opt){
 /* 원본 학습지(HWP)·교재(PDF)에서 가져온 그림 — 카드 이름으로 붙인다 */
 var FIG={
   "회전익 드론":      {img:"images/multicopter-types.png", imgCap:"멀티콥터 종류 — 로터 3·4·6·8개 (트라이 · 쿼드 · 헥사 · 옥토)"},
+  "토크 상쇄":        {img:"images/props-cw-ccw.png", imgCap:"대각선끼리 같은 방향 — 1·3번 CW, 2·4번 CCW (교재 109쪽)"},
   "리포 배터리 전압": {img:"images/battery.jpg", imgCap:"리튬 폴리머 배터리 — 10000mAh · 10C · 11.1V(3S) 표기"},
   "배터리 안전":      {img:"images/battery6s.jpg", imgCap:"6cell 22.2V 22000mAh — 셀 수가 늘면 전압이 올라간다"}
 };

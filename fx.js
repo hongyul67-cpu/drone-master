@@ -56,6 +56,29 @@ var CSS = `
 .fx-hud .hbox span{font-size:10.5px;color:#9db0d6;font-weight:700}
 .fx-hud .hbox.hot{border-color:#fbbf24;background:#3a2f10}
 .fx-hud .hbox.hot b{color:#fbbf24}
+/* 계급 배지 — 다음 계급까지 남은 점수를 막대로 보여 준다 */
+.fx-hud .hrbox{position:relative;overflow:hidden;transition:border-color .3s}
+.fx-hud .hrbox b{font-size:15px;letter-spacing:-.3px;white-space:nowrap}
+.fx-hud .hrbox span{font-size:9.5px}
+.fx-hud .hrbox i{position:absolute;left:0;bottom:0;height:3px;width:0;background:#22d3ee;transition:width .5s}
+/* 승급 연출 */
+.fx-promote{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;pointer-events:none;
+  background:rgba(4,10,22,.55);animation:fpin .3s ease}
+.fx-promote.out{animation:fpout .5s ease forwards}
+@keyframes fpin{from{opacity:0}to{opacity:1}}
+@keyframes fpout{to{opacity:0}}
+.fx-promote .pbox{background:linear-gradient(150deg,#13244d,#0c1730);border:3px solid #a78bfa;
+  border-radius:24px;padding:30px 40px;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.65);
+  animation:fppop .55s cubic-bezier(.34,1.5,.64,1)}
+@keyframes fppop{0%{transform:scale(.5) rotate(-8deg);opacity:0}100%{transform:none;opacity:1}}
+.fx-promote .pe{font-size:64px;line-height:1;animation:fpspin .8s cubic-bezier(.34,1.4,.64,1)}
+@keyframes fpspin{0%{transform:scale(0) rotate(-180deg)}100%{transform:none}}
+.fx-promote .pt{font-size:15px;font-weight:900;color:#9db0d6;margin-top:8px;letter-spacing:3px}
+.fx-promote .pn{font-size:38px;font-weight:900;margin-top:2px}
+.fx-promote .ps{font-size:13px;color:#9db0d6;margin-top:8px}
+@media (prefers-reduced-motion: reduce){
+  .fx-promote,.fx-promote .pbox,.fx-promote .pe{animation:none}
+}
 /* 클리어 배너 */
 .fx-banner{position:fixed;inset:0;z-index:9997;display:none;align-items:center;justify-content:center;
   background:rgba(4,10,22,.74);padding:20px}
@@ -175,6 +198,70 @@ function flash(color){
   setTimeout(function(){ f.classList.remove("on") },520);
 }
 
+/* ══════════ 계급(랭크) — 여러 차시를 하며 쌓이는 RP로 승급한다 ══════════
+   아이언 → 브론즈 → 실버 → 골드 → 플래티넘 → 다이아 → 마스터
+   RP는 이 기기(localStorage)에 쌓이므로, 학생이 자기 기기로 계속 하면 올라간다. */
+var TIERS=[
+  {n:"아이언",   e:"🔩", c:"#94a3b8", at:0},
+  {n:"브론즈",   e:"🥉", c:"#cd7f32", at:150},
+  {n:"실버",     e:"🥈", c:"#cbd5e1", at:400},
+  {n:"골드",     e:"🥇", c:"#fbbf24", at:750},
+  {n:"플래티넘", e:"💎", c:"#22d3ee", at:1200},
+  {n:"다이아",   e:"💠", c:"#60a5fa", at:1800},
+  {n:"마스터",   e:"👑", c:"#a78bfa", at:2600}
+];
+var RP_KEY="fx_rp_v1";
+var RP=0;
+try{ RP=parseInt(localStorage.getItem(RP_KEY),10)||0 }catch(e){}
+
+function tierOf(rp){
+  var t=TIERS[0], i=0;
+  for(i=0;i<TIERS.length;i++) if(rp>=TIERS[i].at) t=TIERS[i];
+  var idx=TIERS.indexOf(t), next=TIERS[idx+1]||null;
+  return {
+    name:t.n, emoji:t.e, color:t.c, index:idx, next:next?next.n:null,
+    need: next ? (next.at-rp) : 0,
+    pct: next ? Math.round((rp-t.at)/(next.at-t.at)*100) : 100
+  };
+}
+function saveRP(){ try{ localStorage.setItem(RP_KEY,String(RP)) }catch(e){} }
+/* RP를 더하고, 계급이 오르면 승급 연출을 띄운다 */
+function addRP(n){
+  if(!n) return;
+  var before=tierOf(RP).index;
+  RP+=n; saveRP(); paintRank();
+  var after=tierOf(RP).index;
+  if(after>before) promote(tierOf(RP));
+}
+function promote(t){
+  inject();
+  var d=document.createElement("div");
+  d.className="fx-promote";
+  d.innerHTML='<div class="pbox" style="border-color:'+t.color+'">'
+    +'<div class="pe">'+t.emoji+'</div>'
+    +'<div class="pt">승급!</div>'
+    +'<div class="pn" style="color:'+t.color+'">'+t.name+'</div>'
+    +'<div class="ps">계속 해서 다음 계급에 도전하자</div></div>';
+  document.body.appendChild(d);
+  sound("clear");
+  burst(d,{color:t.color,n:18,dist:130});
+  setTimeout(function(){ d.classList.add("out") },2100);
+  setTimeout(function(){ d.remove() },2700);
+}
+function paintRank(){
+  if(!hudEl) return;
+  var box=hudEl.querySelector(".hrbox"); if(!box) return;
+  var t=tierOf(RP);
+  var b=box.querySelector(".hr");
+  b.textContent=t.emoji+" "+t.name;
+  b.style.color=t.color;
+  box.style.borderColor=t.color;
+  var s=box.querySelector("span");
+  s.textContent = t.next ? (t.next+"까지 "+t.need) : ("최고 계급 · RP "+RP);
+  var bar=box.querySelector("i");
+  if(bar){ bar.style.width=t.pct+"%"; bar.style.background=t.color }
+}
+
 /* ── 점수 · 콤보 ── */
 var SCORE=0, COMBO=0, BEST=0, hudEl=null;
 function paintHud(){
@@ -190,8 +277,9 @@ function hud(el){
   el.classList.add("fx-hud");
   el.innerHTML='<div class="hbox"><b class="hs">0</b><span>점수</span></div>'
              + '<div class="hbox hcbox"><b class="hc">–</b><span>콤보</span></div>'
-             + '<div class="hbox"><b class="hb">0</b><span>최고 콤보</span></div>';
-  paintHud();
+             + '<div class="hbox"><b class="hb">0</b><span>최고 콤보</span></div>'
+             + '<div class="hbox hrbox"><b class="hr">🔩 아이언</b><span>계급</span><i></i></div>';
+  paintHud(); paintRank();
   return el;
 }
 function comboBadge(n){
@@ -214,6 +302,7 @@ function ok(el,opt){
     countUp(hudEl.querySelector(".hs"), SCORE, 420);
     paintHud();
   }
+  addRP(gain);                       // 맞힌 만큼 계급 점수(RP)도 함께 쌓인다
   if(COMBO>=3 && COMBO%3===0){ comboBadge(COMBO); sound("combo"); }
   else sound("ok");
   return gain;
@@ -272,11 +361,24 @@ function starsFor(miss){ return miss===0?3:(miss<=2?2:(miss<=5?1:0)) }
 
 function reset(){ SCORE=0; COMBO=0; BEST=0; paintHud() }
 
+/* 내 최고 기록 — 도구별로 이 기기에 저장한다 */
+function record(toolId,value){
+  var k="fx_best_"+toolId, old=0;
+  try{ old=parseInt(localStorage.getItem(k),10)||0 }catch(e){}
+  var isNew=value>old;
+  if(isNew){ try{ localStorage.setItem(k,String(value)) }catch(e){} }
+  return {best:isNew?value:old, prev:old, isNew:isNew};
+}
+
 window.FX={
   ok:ok, no:no, burst:burst, punch:punch, shake:shake, flash:flash,
   hud:hud, banner:banner, starsFor:starsFor, countUp:countUp, sound:sound,
   reset:reset, init:inject,
-  combo:function(){return COMBO}, best:function(){return BEST}, score:function(){return SCORE}
+  combo:function(){return COMBO}, best:function(){return BEST}, score:function(){return SCORE},
+  // 계급(랭크)
+  rp:function(){return RP}, addRP:addRP, rank:function(){return tierOf(RP)}, tiers:TIERS,
+  promote:promote, record:record,
+  rankReset:function(){ RP=0; saveRP(); paintRank() }
 };
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",inject);
 else inject();

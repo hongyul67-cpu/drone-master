@@ -583,6 +583,13 @@ BUILD.quiz=function(sec,step,i){
       CLEARED[step.key]=false; clearStep(step,i);   // 진행 드론을 끝까지 올린다
       var rank = score>=95?"S":(score>=85?"A":(score>=70?"B":(score>=50?"C":"D")));
       var stars = score>=95?3:(score>=75?2:(score>=50?1:0));
+      // 학습지 점수만큼 계급 점수(RP)를 준다 + 내 최고 기록 갱신
+      var rec=null, rk=null;
+      if(window.FX){
+        FX.addRP(Math.round(score*1.5));
+        rec=FX.record("lesson_"+(CFG.id||CFG.name), score);
+        rk=FX.rank();
+      }
       setTimeout(function(){
         if(!window.FX) return;
         FX.banner({
@@ -590,7 +597,11 @@ BUILD.quiz=function(sec,step,i){
           title: rank+" 등급 · "+score+"점",
           sub: step.data.length+"문제 중 <b>"+correct+"문제</b> 정답"+
                (wrong.length?"<br><span style='color:#fb7185'>틀린 문제 "+wrong.join(", ")+"번 — 아래 해설을 꼭 읽자</span>"
-                            :"<br><span style='color:#34d399'>전부 맞혔다! 완벽하다</span>"),
+                            :"<br><span style='color:#34d399'>전부 맞혔다! 완벽하다</span>")+
+               (rec&&rec.isNew?"<br><span style='color:#fbbf24;font-weight:800'>🎯 내 최고 기록 갱신! (이전 "+rec.prev+"점)</span>":"")+
+               (rk?"<br><span style='color:"+rk.color+";font-weight:800'>"+rk.emoji+" "+rk.name+"</span>"
+                   +(rk.next?"<span style='color:#9db0d6'> · "+rk.next+"까지 "+rk.need+"점</span>":"")
+                :""),
           stars: stars,
           btn: "해설 보기 →",
           onClose: function(){ banner.scrollIntoView({behavior:"smooth",block:"center"}) }

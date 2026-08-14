@@ -362,9 +362,11 @@ function start(opt){
   tDraw(); draw();
 }
 
-/* 원본 학습지(HWP)에서 가져온 그림 — 차시·카드 이름으로 붙인다 */
+/* 원본 학습지(HWP)·교재(PDF)에서 가져온 그림 — 카드 이름으로 붙인다 */
 var FIG={
-  "회전익 드론": {img:"images/multicopter-types.png", imgCap:"멀티콥터 종류 — 로터 3·4·6·8개 (트라이 · 쿼드 · 헥사 · 옥토)"}
+  "회전익 드론":      {img:"images/multicopter-types.png", imgCap:"멀티콥터 종류 — 로터 3·4·6·8개 (트라이 · 쿼드 · 헥사 · 옥토)"},
+  "리포 배터리 전압": {img:"images/battery.jpg", imgCap:"리튬 폴리머 배터리 — 10000mAh · 10C · 11.1V(3S) 표기"},
+  "배터리 안전":      {img:"images/battery6s.jpg", imgCap:"6cell 22.2V 22000mAh — 셀 수가 늘면 전압이 올라간다"}
 };
 /* 차시 뒤에 덧붙이는 그림 슬라이드 */
 var EXTRA={
@@ -389,6 +391,15 @@ var EXTRA={
        {k:"에일러론 — 좌우 차이",      v:"좌 · 우 이동 (⑤⑥)"},
        {k:"러더 — 대각선 한 쌍",       v:"제자리 회전, 요 (⑦⑧)"}
      ]}],
+  "01": [{t:"section", ico:"🎆", title:"드론은 이런 곳에도 쓰인다", after:"cards",
+          sub:"한강 드론 라이트쇼 — 수백 대가 <b>정해진 자리</b>를 지키며 함께 난다.",
+          img:"images/droneshow.jpg", imgCap:"드론 라이트쇼(군집 비행)"}],
+  "04": [{t:"section", ico:"🗺️", title:"어디서 날리면 안 될까?", after:"cards",
+          sub:"빨간 <b>P 구역</b>은 비행 금지, 초록 원은 <b>관제권</b>(공항 주변)이다. 여기서 날리려면 <b>승인</b>이 필요하다.",
+          img:"images/nofly-map.png", imgCap:"드론 비행 금지 구역과 관제권 확인 지도 (교재 34쪽)"},
+         {t:"section", ico:"🎫", title:"조종자 증명 응시 기준", after:"cards",
+          sub:"무게 등급에 따라 필요한 <b>비행 경력</b>이 다르다.",
+          img:"images/cert-table.png", imgCap:"1~4종 응시 기준 (교재 34쪽)"}],
   "06": [{t:"card", ico:"🔢", title:"신고번호는 이렇게 읽는다", after:"cards", noBlank:true,
           img:"images/regnum.png", imgCap:"예) C4CM0001234",
           lines:["맨 앞 <b>C0~C4</b> — 기체 종류와 무게 등급",

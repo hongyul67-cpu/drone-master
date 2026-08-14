@@ -393,10 +393,21 @@
              sub:"부품 5가지 → 센서 5종 → 함께 풀어 보기"}];
     SL.push({t:"section", ico:"📖", title:"드론은 무엇으로 이루어질까?",
              sub:"드론을 이루는 <b>다섯 가지 부품</b>을 하나씩 살펴보자."});
+    // 교재(드론 제작 PDF)에서 뽑은 실제 부품 사진을 함께 보여 준다
+    var PHOTO={
+      frame:{img:"images/frame.jpg", cap:"드론 프레임 — 250mm급과 450mm급"},
+      esc:  {img:"images/esc.jpg",   cap:"전자 변속기(ESC)의 배선 — 배터리·모터·수신기로 이어진다"},
+      fc:   {img:"images/fc-kk.jpg", cap:"비행제어장치(FC) 예 — KK보드"}
+    };
     PART_KEYS.forEach(function(k){
-      var p=PARTS[k];
-      SL.push({t:"card", ico:p.e, title:p.n+" ("+p.tag+")", lines:[p.role]});
+      var p=PARTS[k], sl={t:"card", ico:p.e, title:p.n+" ("+p.tag+")", lines:[p.role]};
+      if(PHOTO[k]){ sl.img=PHOTO[k].img; sl.imgCap=PHOTO[k].cap }
+      SL.push(sl);
     });
+    SL.push({t:"section", ico:"📡", title:"조종기와 수신기",
+             sub:"조종기(송신기)가 보낸 신호를 <b>수신기</b>가 받아 <b>FC</b>에 전달한다.",
+             figs:[{src:"images/tx.jpg", cap:"송신기 — 조종기"},
+                   {src:"images/rx.jpg", cap:"수신기 — 기체에 달린다"}]});
     // 조립게임의 역할 설명을 그대로 쓴다(SLOTS는 아래에서 정의되므로 여기서는 직접 적는다)
     SL.push({t:"rows", ico:"🛠️", title:"어떤 부품이 들어갈까?",
              sub:"설명을 보고 어떤 부품인지 함께 맞혀 보자.",

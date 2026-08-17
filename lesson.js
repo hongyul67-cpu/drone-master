@@ -571,7 +571,11 @@ BUILD.quiz=function(sec,step,i){
       after.style.display="flex";
       grade.style.display="none";
       QUIZ_RESULT={score:score,correct:correct,total:step.data.length,wrong:wrong.join(","),
-                   durationSec:Math.round((Date.now()-START)/1000)};
+                   durationSec:Math.round((Date.now()-START)/1000),
+                   /* 생기부 — 도구 이름 대신 차시(학습 주제)를 활동명으로 넘긴다 */
+                   mode:(CFG.name||'드론 이론')};
+      /* 랭킹전 — 학습지 채점이 끝나면 RP 정산 (드론 도구들이 계급을 공유) */
+      if(window.RankKit) RankKit.award(score, CFG.name||'드론 이론');
       try{
         localStorage.setItem("drone_lesson_"+(CFG.id||CFG.name),
           JSON.stringify({name:CFG.name,score:score,correct:correct,total:step.data.length,at:new Date().toISOString()}));

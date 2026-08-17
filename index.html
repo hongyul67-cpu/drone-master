@@ -203,6 +203,8 @@
     });
   }
   toggle.addEventListener("change",paint);
+  // ?class=1 로 열면 수업용 스위치가 처음부터 켜진 채 시작한다(마스터에서 바로 수업 모드로 진입)
+  if(new URLSearchParams(location.search).get("class")==="1") toggle.checked=true;
   paint();
   if(new URLSearchParams(location.search).get("rc")) document.getElementById("rcbar").style.display="block";
 })();

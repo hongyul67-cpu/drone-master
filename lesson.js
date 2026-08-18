@@ -426,8 +426,8 @@ BUILD.probe=function(sec,step,i){
       if(!probeDone && allFilled()){
         probeDone=true; clearStep(step,i);
         if(window.FX) FX.banner({icon:"🔎",title:"탐구 보고서 완성!",
-          sub:"조사한 내용을 잘 정리했다."+(hasRC?"<br>아래 <b>제출</b> 버튼으로 선생님께 보내자":""),
-          stars:false, btn:"좋아요 👍", onClose:function(){ if(hasRC) submit.scrollIntoView({behavior:"smooth",block:"center"}) }});
+          sub:"조사한 내용을 잘 정리했다.<br>아래 <b>제출</b> 버튼으로 선생님께 보내자",
+          stars:false, btn:"좋아요 👍", onClose:function(){ submit.scrollIntoView({behavior:"smooth",block:"center"}) }});
       }
     });
   });
@@ -444,18 +444,21 @@ BUILD.probe=function(sec,step,i){
     if(allFilled()){ probeDone=true; CLEARED[step.key]=false; clearStep(step,i); }
   })();
 
-  if(hasRC){ submit.style.display="block"; }
-  else{ rcHint.textContent="※ 선생님이 준 제출용 링크(?rc=…)로 열면 '제출' 버튼이 나온다. 지금은 화면을 보여 주거나 나중에 제출하자."; }
+  submit.style.display="block";
+  if(!hasRC) rcHint.textContent="※ 지금 링크로는 제출이 되지 않는다. 선생님이 준 제출용 링크(?rc=…)로 열면 보낼 수 있다. 작성은 지금 그대로 이어 가자.";
 
+  submit.textContent="📤 [탐구보고서] 결과 제출";
   submit.addEventListener("click",function(){
     var missing=fields.filter(function(f){ var e=pel(f.k); return !e || e.value.trim().length<(f.short?3:15) });
     if(missing.length){ helper.textContent="아직 덜 쓴 칸이 있다: "+missing.map(function(f){return f.label}).join(", "); return; }
     var body=fields.map(function(f){ return "["+f.label+"] "+pel(f.k).value.trim().replace(/\s+/g," ") }).join("  //  ");
     if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
     var filled=fields.filter(function(f){ return pel(f.k).value.trim().length>0 }).length;
-    ResultCollector.open({correct:filled,total:fields.length,wrong:body,
-      labels:{correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"탐구 내용"}});
     if(window.FX) FX.sound("clear");
+    RCPart.submit((CFG.name||"드론")+" — 탐구보고서", {
+      correct:filled,total:fields.length,wrong:body,
+      labels:{correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"탐구 내용"}
+    }, ["자료를 찾아 스스로 정리함"]);
   });
   clr.addEventListener("click",function(){
     if(!confirm("작성한 탐구보고서를 전부 지울까? 되돌릴 수 없다.")) return;
@@ -532,7 +535,7 @@ BUILD.quiz=function(sec,step,i){
   grade.addEventListener("click",function(){
     if(grade.disabled) return;
     grade.disabled=true; grade.textContent="채점 중…";
-    var correct=0, wrong=[], qi=0;
+    var correct=0, wrong=[], wrongNote=[], qi=0;
     banner.style.display="grid";
     $(".s1",banner).textContent="0"; $(".s2",banner).textContent="0 / "+step.data.length;
     $(".s3",banner).textContent="–";
@@ -554,6 +557,10 @@ BUILD.quiz=function(sec,step,i){
         if(window.FX){ FX.punch(q); FX.burst(q,{n:7,dist:44}); FX.sound("up"); }
       }else{
         wrong.push(qi+1);
+        // 무엇을 틀렸는지 남긴다 (규약 §1 ②)
+        wrongNote.push({no:qi+1, q:item.q||"",
+          pick: item.a ? item.a[picked[qi]] : String(picked[qi]==null?"":picked[qi]),
+          ans: right});
         if(window.FX) FX.shake(q);
       }
       // 맞힌 개수는 "n / 총" 형식이라 카운트업을 걸면 형식이 깨진다. 최종 점수만 카운트업한다.
@@ -570,19 +577,25 @@ BUILD.quiz=function(sec,step,i){
       $(".s3",banner).textContent=mins+"분";
       after.style.display="flex";
       grade.style.display="none";
-      QUIZ_RESULT={score:score,correct:correct,total:step.data.length,wrong:wrong.join(","),
-                   durationSec:Math.round((Date.now()-START)/1000),
-                   /* 생기부 — 도구 이름 대신 차시(학습 주제)를 활동명으로 넘긴다 */
-                   mode:(CFG.name||'드론 이론')};
+      QUIZ_RESULT={mode:(CFG.name||"드론")+" — 학습지 퀴즈",
+                   score:score,correct:correct,total:step.data.length,
+                   wrong:(window.RCPart?RCPart.descs(wrongNote):wrong),
+                   durationSec:Math.round((Date.now()-START)/1000)};
       /* 랭킹전 — 학습지 채점이 끝나면 RP 정산 (드론 도구들이 계급을 공유) */
-      if(window.RankKit) RankKit.award(score, CFG.name||'드론 이론');
+      if(window.RankKit) RankKit.award(score, QUIZ_RESULT.mode);
       try{
         localStorage.setItem("drone_lesson_"+(CFG.id||CFG.name),
           JSON.stringify({name:CFG.name,score:score,correct:correct,total:step.data.length,at:new Date().toISOString()}));
       }catch(e){}
-      if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
+      // 제출 버튼은 ?rc= 링크가 아니어도 항상 보인다 (규약 §1 ③)
+      if(window.RCPart){
         submit.style.display="block";
-        submit.onclick=function(){ ResultCollector.open(QUIZ_RESULT) };
+        RCPart.mount(submit, {
+          id:"rcQuiz", className:"btn", label:"학습지 퀴즈",
+          part:(CFG.name||"드론")+" — 학습지 퀴즈",
+          extra:[(CFG.name||"드론")+" 학습 내용 확인"],
+          payload:function(){ return QUIZ_RESULT }
+        });
       }
       CLEARED[step.key]=false; clearStep(step,i);   // 진행 드론을 끝까지 올린다
       var rank = score>=95?"S":(score>=85?"A":(score>=70?"B":(score>=50?"C":"D")));

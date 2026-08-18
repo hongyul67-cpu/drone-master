@@ -442,7 +442,8 @@
   <button class="btn foclose" id="foClose">결과 보기 →</button>
 </div>
 
-<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 만들기(픽스호크)"></script>
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 제작 마스터"></script>
+<script src="rc-part.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/rank.js" data-tool="드론 제작"></script>
 <script>
 /* ── 랭킹전(공용 계급) + 생기부 키워드 ──
@@ -1028,17 +1029,19 @@ function showResult(){
       tool:"픽스호크", score:score, miss:MISS, totalMiss:totalMiss, minutes:mins, at:new Date().toISOString()
     }));
   }catch(e){}
-  if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
-    $("#btnSubmit").style.display="block";
-    $("#btnSubmit").onclick=function(){
-      ResultCollector.open({
-        mode:'드론 제작 — 픽스호크',
-        score:score, correct:6-weak.length, total:6, wrong:weak.join(","),
-        durationSec:Math.round((Date.now()-START)/1000),
-        labels:{score:"점수",correct:"한번에 통과한 단계",total:"전체 단계",rate:"통과율(%)",wrong:"실수한 단계"}
-      });
-    };
-  }
+  // 제출 버튼은 ?rc= 링크가 아니어도 항상 보인다 (규약 §1 ③)
+  $("#btnSubmit").style.display="block";
+  if(window.RCPart) RCPart.mount("#btnSubmit", {
+    id:"rcBuild", className:"btn bigbtn", label:"픽스호크 조립",
+    part:"드론 만들기(픽스호크) — 조립 시뮬레이터",
+    extra:["설정 순서를 스스로 완성함"],
+    payload:function(){ return {
+      score:score, correct:6-weak.length, total:6,
+      wrong: weak.map(function(n,i){ return (i+1)+"번 실수한 단계 · "+n }),
+      durationSec:Math.round((Date.now()-START)/1000),
+      labels:{score:"점수",correct:"한번에 통과한 단계",total:"전체 단계",rate:"통과율(%)",wrong:"실수한 단계"}
+    }}
+  });
   $("#resultCard").scrollIntoView({behavior:"smooth"});
 }
 $("#toResult").addEventListener("click",showResult);

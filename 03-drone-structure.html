@@ -342,7 +342,8 @@
 <div class="toast" id="toast"></div>
 
 <!-- 결과 제출 위젯: ?rc=<선생님 시트주소> 링크로 열면 제출 버튼이 나타납니다 -->
-<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론기초 3차시 기본구조"></script>
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 제작 마스터"></script>
+<script src="rc-part.js"></script>
 
 <script src="https://hongyul67-cpu.github.io/links/rank.js" data-tool="드론 제작"></script>
 <script>
@@ -708,7 +709,7 @@
     for(var i=0;i<QUIZ.length;i++){ if(picked[i]===undefined) unanswered.push(i+1); }
     if(unanswered.length){ toast("아직 안 푼 문제: "+unanswered.join(", "),"bad"); return; }
     graded=true;
-    var correct=0, wrong=[];
+    var correct=0, wrong=[], wrongNote=[];
     $$(".q").forEach(function(q){
       var qi=parseInt(q.dataset.qi,10); q.classList.add("graded");
       var ans=QUIZ[qi].a, my=picked[qi];
@@ -717,10 +718,16 @@
         if(oi===ans){ op.classList.add("correct"); if(my===ans && window.FX) FX.burst(op,{color:"#34d399",n:7}); }
         else if(oi===my) op.classList.add("wrong");
       });
-      if(my===ans) correct++; else wrong.push(qi+1);
+      if(my===ans) correct++;
+      else{
+        wrong.push(qi+1);
+        wrongNote.push({no:qi+1, q:QUIZ[qi].q, pick:QUIZ[qi].o[my], ans:QUIZ[qi].o[ans]});
+      }
     });
     var score=Math.round(correct/QUIZ.length*100);
-    window.__quizResult={score:score,correct:correct,total:QUIZ.length,wrong:wrong,
+    window.__quizResult={mode:"드론 기본구조 — 퀴즈",
+      score:score,correct:correct,total:QUIZ.length,
+      wrong:(window.RCPart?RCPart.descs(wrongNote):wrong),
       durationSec:Math.round((Date.now()-startTime)/1000)};
     $("#quizScore").textContent=score+"점";
     $("#quizSub").textContent=correct+" / "+QUIZ.length+" 정답"+(wrong.length?(" · 틀린 문제: "+wrong.join(", ")):" · 만점! 🎉");
@@ -728,15 +735,20 @@
     $("#gradeBtn").style.display="none";
     $("#afterGrade").style.display="flex";
     markDone("quiz");
-    // ?rc= 로 열렸을 때만 제출 버튼 노출
+    // 제출 버튼은 ?rc= 링크가 아니어도 항상 보인다 (규약 §1 ③)
     var hasRC = window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint;
-    if(hasRC){ $("#submitBtn").style.display="block"; }
+    $("#submitBtn").style.display="block";
+    if(window.RCPart) RCPart.mount("#submitBtn", {
+      id:"rcQuiz", className:"btn", label:"기본구조 퀴즈",
+      part:"드론 기본구조 — 퀴즈", extra:["드론 부품의 역할 구분"],
+      payload:function(){ return window.__quizResult || {} }
+    });
     window.scrollTo({top:0,behavior:"smooth"});
     if(window.FX) FX.banner({
       icon: score>=90?"🏆":(score>=70?"🎉":"💪"),
       title: score+"점!",
       sub: correct+" / "+QUIZ.length+" 정답"+(wrong.length?" · 오답노트를 확인하세요":" · 완벽해요!")
-           +(hasRC?"<br>아래 <b>선생님께 제출</b>도 잊지 마세요":""),
+           +"<br>아래 <b>선생님께 제출</b>도 잊지 마세요",
       stars: FX.starsFor(wrong.length),
       btn:"결과 보기", onClose:function(){ window.scrollTo({top:0,behavior:"smooth"}); }
     });
@@ -751,10 +763,7 @@
     window.scrollTo({top:0,behavior:"smooth"});
   });
 
-  $("#submitBtn").addEventListener("click",function(){
-    var r=window.__quizResult; if(!r)return;
-    ResultCollector.open(r);
-  });
+
 
   /* ───────── 5. 탐구보고서 ───────── */
   var PROBE=[
@@ -792,8 +801,8 @@
         if(!probeDone && allFilled()){
           probeDone=true; markDone("probe");
           if(window.FX) FX.banner({icon:"🔎",title:"탐구 보고서 완성!",
-            sub:"관심 드론의 기본구조를 잘 정리했어요."+(hasRC?"<br>아래 <b>제출</b> 버튼으로 선생님께 보내세요":""),
-            stars:false, btn:"좋아요 👍", onClose:function(){ if(hasRC) $("#probeSubmit").scrollIntoView({behavior:"smooth",block:"center"}); }});
+            sub:"관심 드론의 기본구조를 잘 정리했어요.<br>아래 <b>제출</b> 버튼으로 선생님께 보내세요",
+            stars:false, btn:"좋아요 👍", onClose:function(){ $("#probeSubmit").scrollIntoView({behavior:"smooth",block:"center"}); }});
         }
       });
     });
@@ -823,8 +832,10 @@
 
   renderProbe(); loadProbe();
 
-  if(hasRC){ $("#probeSubmit").style.display="block"; }
-  else{ $("#probeRcHint").textContent="※ 선생님이 준 제출용 링크(?rc=…)로 열면 '제출' 버튼이 나와요. 지금은 화면을 보여 드리거나 나중에 제출하세요."; }
+  $("#probeSubmit").style.display="block";   // 제출 버튼은 항상 보인다 (규약 §1 ③)
+  $("#probeSubmit").textContent="📤 [탐구보고서] 결과 제출";
+  $("#probeRcHint").textContent = hasRC ? ""
+    : "※ 지금 링크로는 제출이 되지 않아요. 선생님이 준 제출용 링크(?rc=…)로 열면 보낼 수 있어요. 작성은 지금 그대로 이어 가세요.";
 
   $("#probeSubmit").addEventListener("click",function(){
     var missing=PROBE.filter(function(f){ var el=pEl(f.k); return !el || el.value.trim().length < (f.short?3:15); });
@@ -835,11 +846,11 @@
     var body=PROBE.map(function(f){ return "["+f.label+"] "+pEl(f.k).value.trim().replace(/\s+/g," "); }).join("  //  ");
     if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
     var filled=PROBE.filter(function(f){ return pEl(f.k).value.trim().length>0; }).length;
-    ResultCollector.open({
+    if(window.FX) FX.sound("clear");
+    RCPart.submit("드론 기본구조 — 탐구보고서", {
       correct: filled, total: PROBE.length, wrong: body,
       labels:{correct:"작성한 항목", total:"전체 항목", rate:"작성률(%)", wrong:"탐구 내용"}
-    });
-    if(window.FX) FX.sound("clear");
+    }, ["자료를 찾아 스스로 정리함"]);
   });
 
   $("#probeClear").addEventListener("click",function(){

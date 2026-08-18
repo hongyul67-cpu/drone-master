@@ -233,7 +233,8 @@
 </div>
 <div class="saved" id="savedTip">임시저장됨</div>
 
-<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 제작 보고서"></script>
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="드론 제작 마스터"></script>
+<script src="rc-part.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/rank.js" data-tool="드론 제작"></script>
 <script>
 /* ── 랭킹전(공용 계급) + 생기부 키워드 ──
@@ -538,22 +539,25 @@ $("#btnClear").addEventListener("click",function(){
 });
 function msg(c,t){ var e=$("#subMsg"); e.className="msg "+(c||""); e.textContent=t }
 
-if(window.ResultCollector && ResultCollector.config && ResultCollector.config.endpoint){
+// 제출 버튼은 ?rc= 링크가 아니어도 항상 보인다 (규약 §1 ③)
+{
   $("#btnSubmit").style.display="block";
+  $("#btnSubmit").textContent="📤 [드론 제작 보고서] 결과 제출";
   $("#btnSubmit").addEventListener("click",function(){
     if(!S.kind){ msg("no","실습 종류를 먼저 골라 주세요."); return; }
     var empty=QAS.filter(function(q){ return $("#"+q.k).value.trim().length<20 });
     if(empty.length){ msg("no","아직 덜 쓴 항목이 있다 — "+empty.map(function(q){return q.l}).join(", ")); return; }
     var body=QAS.map(function(q){ return "["+q.l+"] "+$("#"+q.k).value.trim().replace(/\s+/g," ") }).join("  //  ");
     if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
-    ResultCollector.open({
+    var sent=RCPart.submit("드론 제작 — 보고서("+(S.kind==="pixhawk"?"픽스호크":"아두이노")+")", {
       score: total(),
       correct: QAS.length-empty.length,
       total: QAS.length,
       wrong: (S.kind==="pixhawk"?"[픽스호크] ":"[아두이노] ")+body,
       durationSec: 0,
       labels:{score:"자기평가 점수",correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"보고서 내용"}
-    });
+    }, ["제작 과정을 스스로 정리해 보고서로 작성함"]);
+    if(!sent) return;
     msg("ok","제출 창을 열었다. 반·번호를 넣고 보내면 된다. (사진은 인쇄본으로 내자)");
     if(window.FX) FX.sound("clear");
   });

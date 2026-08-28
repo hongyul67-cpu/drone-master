@@ -454,10 +454,15 @@ BUILD.probe=function(sec,step,i){
     var body=fields.map(function(f){ return "["+f.label+"] "+pel(f.k).value.trim().replace(/\s+/g," ") }).join("  //  ");
     if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
     var filled=fields.filter(function(f){ return pel(f.k).value.trim().length>0 }).length;
+    /* 탐구보고서는 다 채워야 제출되므로 작성률(correct/total)이 늘 100%다.
+       그래서 수준은 "얼마나 썼는지"(권장 분량 대비 글자 수)로 가른다 — rubric.json 의 measure:"score". */
+    var wrote=fields.reduce(function(s,f){ var e=pel(f.k); return s+(e?e.value.trim().length:0) },0);
+    var want =fields.reduce(function(s,f){ return s+(f.min||0) },0);
+    var vol  =want?Math.round(wrote/want*100):100;
     if(window.FX) FX.sound("clear");
     RCPart.submit((CFG.name||"드론")+" — 탐구보고서", {
-      correct:filled,total:fields.length,wrong:body,
-      labels:{correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"탐구 내용"}
+      correct:filled,total:fields.length,wrong:body,score:vol,
+      labels:{score:"작성 분량(%)",correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"탐구 내용"}
     }, ["자료를 찾아 스스로 정리함"]);
   });
   clr.addEventListener("click",function(){

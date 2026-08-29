@@ -126,7 +126,11 @@ function mount(box, opts){
   opts=opts||{};
   var layout=opts.layout||"pixhawk";
   box.classList.add("dz");
-  box.innerHTML = svgFor(layout) + '<div class="cap">'+(opts.caption||"부품을 하나씩 붙여 보자")+'</div>';
+  /* caption:"" 은 「글자를 붙이지 마라」는 뜻이다. || 로 처리하면 빈 문자열이 falsy 라
+     기본 문구가 되살아나, 조립과 상관없는 화면(시험비행 아레나·진행 표시 드론)에도
+     "부품을 하나씩 붙여 보자" 가 그림 위에 겹쳐 찍혔다. null/undefined 일 때만 기본값을 쓴다. */
+  var cap = (opts.caption==null) ? "부품을 하나씩 붙여 보자" : opts.caption;
+  box.innerHTML = svgFor(layout) + '<div class="cap">'+cap+'</div>';
 
   var api={
     el:box,

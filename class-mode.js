@@ -32,6 +32,13 @@ var CSS = `
 body.classmode{overflow:hidden}
 /* 학생 화면이 정적 HTML인 페이지(03차시 등)에서는 뒤에 남지 않도록 숨긴다 */
 body.classmode > .wrap,body.classmode > .toast,body.classmode > .savedtip{display:none !important}
+/* 학생 화면용으로 떠 있는 위젯은 수업 화면에서 숨긴다.
+   전부 position:fixed 라 그냥 두면 아래쪽 슬라이드 조작줄 위를 덮는다.
+     · #fxSnd(소리)  — 1280 에서 「다음 →」 넓이의 86% 를 가림
+     · #rk-badge(계급) — 「다음 →」·「← 이전」 글자 위에 덧찍힘
+     · .tr-btn(기록 초기화) — 390 에서 슬라이드 번호를 100% 덮고 「← 이전」 29% 를 가림
+   교실 앞 화면에서는 셋 다 쓸 일이 없고, 특히 기록 초기화는 눌리면 위험하다. */
+body.classmode #rk-badge,body.classmode #fxSnd,body.classmode .tr-btn{display:none !important}
 .cls{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;
   background:radial-gradient(1400px 700px at 50% -20%,#16305e 0%,#0a1020 60%)}
 /* 상단 바 */

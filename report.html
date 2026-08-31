@@ -169,6 +169,10 @@
         <div class="ki">🛩️</div><div class="kn">아두이노 나노 드론</div>
         <div class="kd">Ⅲ영역 · FC기판·3D출력·MultiWii</div>
       </div>
+      <div class="kind" data-kind="mission">
+        <div class="ki">📦</div><div class="kn">임무 수행 장치</div>
+        <div class="kd">Ⅴ영역 · 모델링·3D출력·서보제어</div>
+      </div>
     </div>
   </div>
 
@@ -344,6 +348,13 @@ var RUBRIC={
   "모터·ESC·수신기·배터리를 올바른 순서와 방법으로 조립했는가?",
   "MultiWii를 구동하고 config.h 설정과 가속 센서 보정을 마쳤는가?",
   "비행 전 안전 점검 항목과 비상 상황 대처 요령을 알고 있는가?"
+ ],
+ mission:[
+  "에어 드롭 장치와 2축 짐벌이 어떤 장치인지 알고, 서보모터가 어떤 역할을 하는지 설명할 수 있는가?",
+  "인벤터로 스케치와 돌출을 반복해 에어 드롭 장치를 모델링하고 STL로 내보냈는가?",
+  "에어 드롭 장치에 맞는 출력 설정(레이어 높이·서포트 범위·채우기·리트랙션)을 고를 수 있는가?",
+  "서보 제어 명령(Servo.h·attach·write)을 이해하고 걸쇠가 물건을 놓도록 각도를 제어했는가?",
+  "임무 장치를 CH5·CH6에 연결하는 순서를 알고, 모델링→STL→슬라이싱→G코드→출력→후가공 과정을 설명할 수 있는가?"
  ]
 };
 var LEVELS=[["매우 잘함",20],["잘함",15],["보통",10],["노력 요함",5]];
@@ -362,15 +373,22 @@ var S={kind:"",rub:{},photos:[]};
 $$(".kind").forEach(function(k){
   k.addEventListener("click",function(){ setKind(k.dataset.kind); save(); });
 });
+/* 실습 종류마다 다른 것들 — 영역 이름 · 기본 제목 · 짧은 이름 · 게임 기록 키 */
+var KIND={
+  pixhawk:{area:"Ⅳ. 상용 FC(픽스호크) 드론 제작",            title:"픽스호크 상용FC 드론 조립 및 시험비행",
+           short:"픽스호크", rec:"drone_build_pixhawk"},
+  arduino:{area:"Ⅲ. 마이크로프로세서(아두이노 나노) 드론 제작", title:"아두이노 나노 드론 제작 및 비행 테스트",
+           short:"아두이노", rec:"drone_build_arduino"},
+  mission:{area:"Ⅴ. 임무 수행 장치(에어 드롭·짐벌) 제작",      title:"에어 드롭 장치 모델링·출력 및 서보 제어",
+           short:"임무장치", rec:"drone_lesson_mission"}
+};
 function setKind(kind){
   S.kind=kind;
+  var K=KIND[kind]||{};
   $$(".kind").forEach(function(k){ k.classList.toggle("on",k.dataset.kind===kind) });
-  $("#kindPrint").textContent = "실습 영역 : " +
-    (kind==="pixhawk" ? "Ⅳ. 상용 FC(픽스호크) 드론 제작" : "Ⅲ. 마이크로프로세서(아두이노 나노) 드론 제작");
+  $("#kindPrint").textContent = "실습 영역 : " + (K.area||"");
   drawRubric(); drawRecord();
-  if(!$("#fTitle").value){
-    $("#fTitle").value = kind==="pixhawk" ? "픽스호크 상용FC 드론 조립 및 시험비행" : "아두이노 나노 드론 제작 및 비행 테스트";
-  }
+  if(!$("#fTitle").value) $("#fTitle").value = K.title||"";
 }
 
 /* ── 자기평가 ── */
@@ -422,7 +440,7 @@ function total(){
 function drawRecord(){
   var box=$("#recBox");
   var raw=null;
-  try{ raw=localStorage.getItem(S.kind==="arduino"?"drone_build_arduino":"drone_build_pixhawk") }catch(e){}
+  try{ raw=localStorage.getItem((KIND[S.kind]||{}).rec) }catch(e){}
   if(!S.kind){ box.innerHTML='<div class="norec">위에서 실습 종류를 먼저 골라 주세요.</div>'; return; }
   if(!raw){
     box.innerHTML='<div class="norec">아직 만들기 게임 기록이 없다. 게임을 먼저 끝내면 여기에 자동으로 들어온다.<br>'+
@@ -431,6 +449,13 @@ function drawRecord(){
   }
   var d; try{ d=JSON.parse(raw) }catch(e){ box.innerHTML='<div class="norec">기록을 읽을 수 없다.</div>'; return; }
   S.rec=d;
+  /* 임무 장치는 lesson.js 로 돌아가 실수 횟수·걸린 시간을 남기지 않는다.
+     학습지 점수만 있으므로 그 모양에 맞춰 따로 그린다. */
+  if(S.kind==="mission"){
+    box.innerHTML='<div class="rec"><div><b>'+(d.score||0)+'</b><span>학습지 점수</span></div>'+
+      '<div><b>'+(d.correct||0)+' / '+(d.total||0)+'</b><span>맞은 문항</span></div></div>';
+    return;
+  }
   var names = S.kind==="arduino"
     ? {pin:"핀 결선",print:"3D 출력",build:"조립",sw:"MultiWii",safe:"안전"}
     : {frame:"조립",wire:"결선",prop:"프로펠러",tx:"조종기",cal:"보정",fly:"시험비행"};
@@ -538,7 +563,7 @@ function load(){
   }
   // URL에서 넘어온 실습 종류
   var from=new URLSearchParams(location.search).get("from");
-  if(from==="pixhawk"||from==="arduino") setKind(from);
+  if(KIND[from]) setKind(from);
   if(!S.kind) drawRubric();
   if(!$("#fDate").value){
     var t=new Date(), p=function(n){return (n<10?"0":"")+n};
@@ -572,11 +597,12 @@ function msg(c,t){ var e=$("#subMsg"); e.className="msg "+(c||""); e.textContent
     if(empty.length){ msg("no","아직 덜 쓴 항목이 있다 — "+empty.map(function(q){return q.l}).join(", ")); return; }
     var body=QAS.map(function(q){ return "["+q.l+"] "+$("#"+q.k).value.trim().replace(/\s+/g," ") }).join("  //  ");
     if(body.length>4000) body=body.slice(0,4000)+"…(줄임)";
-    var sent=RCPart.submit("드론 제작 — 보고서("+(S.kind==="pixhawk"?"픽스호크":"아두이노")+")", {
+    var short=(KIND[S.kind]||{}).short||S.kind;
+    var sent=RCPart.submit("드론 제작 — 보고서("+short+")", {
       score: total(),
       correct: QAS.length-empty.length,
       total: QAS.length,
-      wrong: (S.kind==="pixhawk"?"[픽스호크] ":"[아두이노] ")+body,
+      wrong: "["+short+"] "+body,
       durationSec: 0,
       labels:{score:"자기평가 점수",correct:"작성한 항목",total:"전체 항목",rate:"작성률(%)",wrong:"보고서 내용"}
     }, ["제작 과정을 스스로 정리해 보고서로 작성함"]);

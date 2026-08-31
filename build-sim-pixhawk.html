@@ -58,6 +58,11 @@
   .sectitle .pill{font-size:11px;background:#0b3a52;color:var(--brand2);padding:3px 9px;border-radius:999px;font-weight:800}
   .hint{background:#0d1a33;border:1px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--sub);margin-top:12px}
   .hint b{color:var(--gold)}
+  /* 답이 그대로 적힌 힌트는 접어 둔다 — 화면에 펼쳐져 있으면 문제를 풀 필요가 없다 */
+  details.hint>summary{cursor:pointer;color:var(--gold);font-weight:700;list-style:none}
+  details.hint>summary::-webkit-details-marker{display:none}
+  details.hint>summary::before{content:"💡 ";}
+  details.hint[open]>summary{margin-bottom:6px}
 
   /* 부품 도감 */
   .parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:12px}
@@ -278,7 +283,7 @@
       </div>
       <div class="opts" id="motorOpts"></div>
       <div class="msg" id="motorMsg"></div>
-      <div class="hint">💡 헷갈리면 이렇게 외우자 — <b>1번은 앞·오른쪽</b>에서 시작해서 <b>대각선</b>으로 2번, 다시 앞·왼쪽이 3번, 대각선으로 4번. 대각선끼리 같은 번호 묶음(1↔2, 3↔4)이 된다.</div>
+      <details class="hint"><summary>모터 번호가 헷갈리면 열어 보기</summary>헷갈리면 이렇게 외우자 — <b>1번은 앞·오른쪽</b>에서 시작해서 <b>대각선</b>으로 2번, 다시 앞·왼쪽이 3번, 대각선으로 4번. 대각선끼리 같은 번호 묶음(1↔2, 3↔4)이 된다.</details>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="learn">← 배우기</button>
         <button class="btn bigbtn" data-go="wire" id="toWire" disabled>🔌 결선 →</button>
@@ -331,12 +336,12 @@
   <!-- ══════════ 5. 조종기 ══════════ -->
   <section class="panel" id="p-tx">
     <div class="card">
-      <div class="sectitle">🎮 ① 채널 할당 <span class="pill">FLYSKY = AETR</span></div>
+      <div class="sectitle">🎮 ① 채널 할당 <span class="pill">FLYSKY FS-i6X</span></div>
       <p class="lead">채널 줄을 누르고, 아래에서 알맞은 기능을 고르자.</p>
       <div class="rows" id="chRows"></div>
       <div class="opts" id="chOpts"></div>
       <div class="msg" id="chMsg"></div>
-      <div class="hint">💡 채널 순서는 조종기 브랜드마다 다르다. <b>Flysky = AETR</b>(에일러론·엘리베이터·스로틀·러더), <b>Radiolink·FrSky Taranis = RETA</b>. FC의 순서와 다르면 미션 플래너에서 <b>RCMAP</b>으로 맞춰 준다.</div>
+      <details class="hint"><summary>채널 순서가 헷갈리면 열어 보기</summary>채널 순서는 조종기 브랜드마다 다르다. <b>Flysky = AETR</b>(에일러론·엘리베이터·스로틀·러더), <b>Radiolink·FrSky Taranis = RETA</b>. FC의 순서와 다르면 미션 플래너에서 <b>RCMAP</b>으로 맞춰 준다.</details>
     </div>
     <div class="card">
       <div class="sectitle">🔗 ② 바인딩 순서 <span class="pill">FLYSKY FS-i6X + FS-iA6B</span></div>

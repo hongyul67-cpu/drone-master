@@ -277,8 +277,11 @@ function hud(el){
   el.classList.add("fx-hud");
   el.innerHTML='<div class="hbox"><b class="hs">0</b><span>점수</span></div>'
              + '<div class="hbox hcbox"><b class="hc">–</b><span>콤보</span></div>'
-             + '<div class="hbox"><b class="hb">0</b><span>최고 콤보</span></div>'
-             + '<div class="hbox hrbox"><b class="hr">🔩 아이언</b><span>계급</span><i></i></div>';
+             + '<div class="hbox"><b class="hb">0</b><span>최고 콤보</span></div>';
+  /* 계급 칸은 두지 않는다 — 화면 오른쪽 아래에 links/rank.js 배지가 이미 계급을 보여 주는데,
+     이 파일의 RP 와 rank.js 의 RP 가 서로 달라 한 화면에 다른 계급이 두 개 뜨고 있었다
+     (여기는 골드, 배지는 브론즈처럼). 계급 표시는 배지 하나로 통일한다.
+     승급 연출·학습지 배너는 그대로 두고 표시만 뺀다. */
   paintHud(); paintRank();
   return el;
 }

@@ -227,12 +227,12 @@
 
   <div class="steps" id="steps">
     <div class="step on" data-go="learn"   ><span class="ico">📖</span><span class="lb">배우기</span></div>
-    <div class="step locked" data-go="frame"><span class="ico">🔩</span><span class="lb">조립</span></div>
-    <div class="step locked" data-go="wire" ><span class="ico">🔌</span><span class="lb">결선</span></div>
-    <div class="step locked" data-go="prop" ><span class="ico">🌀</span><span class="lb">프로펠러</span></div>
-    <div class="step locked" data-go="tx"   ><span class="ico">🎮</span><span class="lb">조종기</span></div>
-    <div class="step locked" data-go="cal"  ><span class="ico">🧭</span><span class="lb">보정</span></div>
-    <div class="step locked" data-go="fly"  ><span class="ico">🛫</span><span class="lb">시험비행</span></div>
+    <div class="step" data-go="frame"><span class="ico">🔩</span><span class="lb">조립</span></div>
+    <div class="step" data-go="wire" ><span class="ico">🔌</span><span class="lb">결선</span></div>
+    <div class="step" data-go="prop" ><span class="ico">🌀</span><span class="lb">프로펠러</span></div>
+    <div class="step" data-go="tx"   ><span class="ico">🎮</span><span class="lb">조종기</span></div>
+    <div class="step" data-go="cal"  ><span class="ico">🧭</span><span class="lb">보정</span></div>
+    <div class="step" data-go="fly"  ><span class="ico">🛫</span><span class="lb">시험비행</span></div>
   </div>
 
   <!-- ══════════ 조립 현황 드론 (모든 단계에서 보임) ══════════ -->
@@ -255,7 +255,7 @@
       </div>
       <div class="bar"><i id="learnBar"></i></div>
       <div class="nav">
-        <button class="btn bigbtn" data-go="frame" id="toFrame" disabled>🔩 조립 시작 (부품 0/10)</button>
+        <button class="btn bigbtn" data-go="frame" id="toFrame">🔩 조립 시작 (부품 0/10)</button>
       </div>
     </div>
   </section>
@@ -286,7 +286,7 @@
       <details class="hint"><summary>모터 번호가 헷갈리면 열어 보기</summary>헷갈리면 이렇게 외우자 — <b>1번은 앞·오른쪽</b>에서 시작해서 <b>대각선</b>으로 2번, 다시 앞·왼쪽이 3번, 대각선으로 4번. 대각선끼리 같은 번호 묶음(1↔2, 3↔4)이 된다.</details>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="learn">← 배우기</button>
-        <button class="btn bigbtn" data-go="wire" id="toWire" disabled>🔌 결선 →</button>
+        <button class="btn bigbtn" data-go="wire" id="toWire">🔌 결선 →</button>
       </div>
     </div>
   </section>
@@ -303,7 +303,7 @@
       <div class="hint">💡 <b>FC는 진동 감쇠 패드</b>로 고정하고, 화살표가 <b>기체 앞</b>을 향하며, 가능한 한 <b>무게중심</b>에 가깝게 둔다. GPS는 다른 전자장치와 멀리 떨어뜨려야 자기장 간섭이 줄어든다.</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="frame">← 조립</button>
-        <button class="btn bigbtn" data-go="prop" id="toProp" disabled>🌀 프로펠러 →</button>
+        <button class="btn bigbtn" data-go="prop" id="toProp">🌀 프로펠러 →</button>
       </div>
     </div>
   </section>
@@ -328,7 +328,7 @@
       💡 너트로 고정하는 모터는 <b>회전 방향의 반대로</b> 잠가야(셀프락) 돌면서 풀리지 않는다.</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="wire">← 결선</button>
-        <button class="btn bigbtn" data-go="tx" id="toTx" disabled>🎮 조종기 →</button>
+        <button class="btn bigbtn" data-go="tx" id="toTx">🎮 조종기 →</button>
       </div>
     </div>
   </section>
@@ -351,7 +351,7 @@
       <div class="msg" id="bindMsg"></div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="prop">← 프로펠러</button>
-        <button class="btn bigbtn" data-go="cal" id="toCal" disabled>🧭 보정 →</button>
+        <button class="btn bigbtn" data-go="cal" id="toCal">🧭 보정 →</button>
       </div>
     </div>
   </section>
@@ -368,7 +368,7 @@
       💡 Fail Safe 전압은 <b>3.5V × 셀 수</b> (예: 3.5×3 = 10.5V).</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="tx">← 조종기</button>
-        <button class="btn bigbtn" data-go="fly" id="toFly" disabled>🛫 시험비행 →</button>
+        <button class="btn bigbtn" data-go="fly" id="toFly">🛫 시험비행 →</button>
       </div>
     </div>
   </section>
@@ -417,7 +417,7 @@
       💡 실제 실습에서는 <b>프로펠러를 반드시 제거한 상태</b>로 먼저 아밍·모터 테스트를 한다.</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="cal">← 보정</button>
-        <button class="btn bigbtn" id="toResult" disabled>🏁 결과 보기</button>
+        <button class="btn bigbtn" id="toResult">🏁 결과 보기</button>
       </div>
     </div>
 

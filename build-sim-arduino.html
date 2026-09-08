@@ -198,11 +198,11 @@
 
   <div class="steps" id="steps">
     <div class="step on" data-go="learn"    ><span class="ico">📖</span><span class="lb">배우기</span></div>
-    <div class="step locked" data-go="pin"  ><span class="ico">📌</span><span class="lb">핀 결선</span></div>
-    <div class="step locked" data-go="print"><span class="ico">🖨️</span><span class="lb">3D 출력</span></div>
-    <div class="step locked" data-go="build"><span class="ico">🔩</span><span class="lb">조립</span></div>
-    <div class="step locked" data-go="sw"   ><span class="ico">💻</span><span class="lb">MultiWii</span></div>
-    <div class="step locked" data-go="safe" ><span class="ico">🛡️</span><span class="lb">시동·안전</span></div>
+    <div class="step" data-go="pin"  ><span class="ico">📌</span><span class="lb">핀 결선</span></div>
+    <div class="step" data-go="print"><span class="ico">🖨️</span><span class="lb">3D 출력</span></div>
+    <div class="step" data-go="build"><span class="ico">🔩</span><span class="lb">조립</span></div>
+    <div class="step" data-go="sw"   ><span class="ico">💻</span><span class="lb">MultiWii</span></div>
+    <div class="step" data-go="safe" ><span class="ico">🛡️</span><span class="lb">시동·안전</span></div>
   </div>
 
   <!-- 조립 현황 드론 (모든 단계에서 보임) -->
@@ -224,7 +224,7 @@
         <p style="margin:0;font-size:13.5px;color:var(--sub)">각 부품이 무엇이고 왜 필요한지 나온다.</p>
       </div>
       <div class="bar"><i id="learnBar"></i></div>
-      <div class="nav"><button class="btn bigbtn" data-go="pin" id="toPin" disabled>📌 핀 결선 시작 (부품 0/10)</button></div>
+      <div class="nav"><button class="btn bigbtn" data-go="pin" id="toPin">📌 핀 결선 시작 (부품 0/10)</button></div>
     </div>
   </section>
 
@@ -245,7 +245,7 @@
       💡 3×7cm 240홀 <b>만능 기판</b>에 헤더 핀을 납땜해 위 결선대로 뒷면에서 전선을 연결한다. <b>쇼트가 나지 않게</b> 주의!</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="learn">← 배우기</button>
-        <button class="btn bigbtn" data-go="print" id="toPrint" disabled>🖨️ 3D 출력 →</button>
+        <button class="btn bigbtn" data-go="print" id="toPrint">🖨️ 3D 출력 →</button>
       </div>
     </div>
   </section>
@@ -262,7 +262,7 @@
       💡 3D 프린터가 없어도 괜찮다. 나무젓가락·아이스크림 막대·고무줄로도 훌륭한 드론을 만들 수 있다.</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="pin">← 핀 결선</button>
-        <button class="btn bigbtn" data-go="build" id="toBuild" disabled>🔩 조립 →</button>
+        <button class="btn bigbtn" data-go="build" id="toBuild">🔩 조립 →</button>
       </div>
     </div>
   </section>
@@ -297,7 +297,7 @@
         입으로 바람을 불어 회전 방향을 확인할 수도 있다.</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="print">← 3D 출력</button>
-        <button class="btn bigbtn" data-go="sw" id="toSw" disabled>💻 MultiWii →</button>
+        <button class="btn bigbtn" data-go="sw" id="toSw">💻 MultiWii →</button>
       </div>
     </div>
   </section>
@@ -315,7 +315,7 @@
       💡 <b>CALIB_ACC</b>는 기체를 수평에 두고 눌러 약 15초 기다린다. 롤·피치가 0°가 되면 <b>WRITE</b>로 저장한다.</div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="build">← 조립</button>
-        <button class="btn bigbtn" data-go="safe" id="toSafe" disabled>🛡️ 시동·안전 →</button>
+        <button class="btn bigbtn" data-go="safe" id="toSafe">🛡️ 시동·안전 →</button>
       </div>
     </div>
   </section>
@@ -346,7 +346,7 @@
       <div class="msg" id="safeMsg"></div>
       <div class="nav">
         <button class="btn bigbtn ghost" data-go="sw">← MultiWii</button>
-        <button class="btn bigbtn" id="toResult" disabled>🏁 결과 보기</button>
+        <button class="btn bigbtn" id="toResult">🏁 결과 보기</button>
       </div>
     </div>
 

@@ -27,14 +27,14 @@
     return d[m];
   }
   /* 오른쪽 아래에는 이미 다른 단추들이 산다 —
-     class-mode.js 의 「🎓 수업모드」(.cm-launch) 와 fx.js 의 소리 토글(#fxSnd).
+     fx.js 의 소리 토글(#fxSnd) 이다.
      그냥 두면 계급 배지가 그 위에 그대로 포개져 글자가 겹쳐 읽히지 않는다.
      붙어 있는 것들을 재서 그 위로 올린다(backbar.js 가 왼쪽 아래에서 쓰는 방식과 같다).
      두 단추가 fx.js 처럼 늦게 붙는 경우가 있어 load 뒤에 한 번 더 잰다. */
   function stackBadge(el){
     function place(){
       var up=10;
-      ['.cm-launch','#fxSnd'].forEach(function(s){
+      ['#fxSnd'].forEach(function(s){
         var o=document.querySelector(s); if(!o) return;
         var r=o.getBoundingClientRect();
         if(r.height) up=Math.max(up, Math.round(window.innerHeight-r.top)+6);
@@ -97,7 +97,6 @@
 </script>
 <script src="drone-anim.js"></script>
 <script src="fx.js"></script>
-<script src="class-mode.js"></script>
 <script src="lesson.js"></script>
 <script>
 Lesson.start({

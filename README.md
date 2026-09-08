@@ -20,6 +20,8 @@
 | `04-drone-law.html` | 초경량비행장치 · 조종자 증명 1~4종 · 준수사항 | 4차시 학습지 + p33~37 |
 | `05-battery-sensor-check.html` | 리포 전압 · 센서 5종 · 안전성인증검사 4종 · 벌칙 | 5차시 학습지 |
 | `06-registration-airspace.html` | 신고번호 C/N·M/H/P/S · 공역 A~G · 관제/비관제/통제/주의 | 6차시 학습지 |
+| **수업 슬라이드(선생님용)** | | |
+| `deck.js` | 교실 앞 화면에 띄우는 **31장** 원고 — 단원 6개 + 정리. 화면은 `links` 의 공용 뷰어(`board-pro.js`)가 그린다. `index.html` 맨 위 「📽️ 수업 슬라이드 열기」로 연다 | 이 저장소 이론 6차시 데이터 + 학습지·교재 그림 21장 |
 | **보고서** | | |
 | `report.html` | 게임 기록 자동 유입 · 자기평가 루브릭 · 서술형 4문항 · 사진 첨부 · A4 인쇄/PDF | 교과서 「실습 점검」 루브릭 |
 
@@ -29,7 +31,14 @@
 |---|---|
 | `fx.js` | **연출 레이어.** `FX.ok(el)` 정답(파티클+펀치+점수·콤보+소리) / `FX.no(el)` 오답(흔들림+화면 플래시+콤보 리셋) / `FX.hud(el)` 점수·콤보 표시 / `FX.banner({icon,title,sub,stars,btn,onClose})` 클리어 배너 / `FX.starsFor(miss)` 별 등급 / `FX.countUp(el,to)` / `FX.sound(name)`. 소리는 교실을 생각해 **기본 꺼짐**, 오른쪽 아래 토글. |
 | `drone-anim.js` | 부품이 하나씩 붙는 SVG 드론. `DroneAnim.mount(el,{layout})` → `part(name,on)` / `spin(0~2)` / `takeoff()`. layout이 `pixhawk`면 1·2번이 CCW, `multiwii`면 1·3번이 CW로 프로펠러가 반대로 돈다. |
+| `deck.js` | **수업 슬라이드 원고.** `window.LESSON`(슬라이드 배열) 과 `window.LESSFIG`(그림 함수 모음)를 내놓는다. 파일 이름이 `lesson.js` 가 아닌 까닭은 이 저장소의 `lesson.js` 가 **이미 다른 것**(이론 차시 학습 엔진)이기 때문이다. 뷰어 사본은 두지 않는다 — 고칠 일이 생기면 `links` 한 곳만 고친다 |
 | `lesson.js` + `lesson.css` | 이론 차시 공용 엔진. 데이터만 넘기면 화면·게임·채점·제출이 만들어진다. 화면 종류: `cards`(배우기) · `sort`(분류) · `match`(매칭) · `pick`(맞는 것 고르기) · `seq`(순서) · `custom`(직접 render) · `quiz`(자동 채점). 학습지 보기는 매번 섞인다. |
+
+## 교사용 큰 화면은 한 곳뿐이다
+
+예전에는 이 저장소에 `class-mode.js` 사본이 있어 차시마다 「🎓 수업용」 단추가 따로 있었다.
+공용 슬라이드 뷰어로 옮기면서 **모두 없앴다** — 교사용 큰 화면이 둘로 갈리면 어느 것을 켰는지
+헷갈리고, 같은 내용을 두 벌 고쳐야 한다. 지금은 `index.html` 의 「📽️ 수업 슬라이드 열기」 하나다.
 
 ## 도구 사이의 연결
 

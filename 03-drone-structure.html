@@ -427,6 +427,8 @@
   }, 60);
 })();
 </script>
+<script src="https://hongyul67-cpu.github.io/links/fig.js"></script>
+<script src="figs.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/fx.js"></script>
 <script>
 (function(){
@@ -500,6 +502,11 @@
 
   /* ───────── 1. 배우기 ───────── */
   var seen={};
+  // 그림(figs.js) — 부품 칩 아래에 「그림으로 먼저 보기」, 칩을 누르면 설명 아래에 그 부품의 그림
+  if(window.DroneFigs){
+    var gf=DroneFigs.first(PART_KEYS.map(function(k){return PARTS[k].n}));
+    if(gf) $("#learnInfo").insertAdjacentHTML("beforebegin",gf);
+  }
   $$(".part-chip").forEach(function(chip){
     chip.addEventListener("click",function(){
       $$(".part-chip").forEach(function(c){c.classList.remove("sel")});
@@ -507,7 +514,7 @@
       var p=PARTS[chip.dataset.part];
       $("#learnInfo").innerHTML=
         '<div class="ib-h">'+p.e+' '+p.n+' <span class="ib-tag">'+p.tag+'</span></div>'+
-        '<div class="ib-b">'+p.role+'</div>';
+        '<div class="ib-b">'+p.role+'</div>'+(window.DroneFigs?DroneFigs.card(p.n):'');
       if(window.FX) FX.punch(chip);
       var fresh=!seen[chip.dataset.part];
       seen[chip.dataset.part]=true;

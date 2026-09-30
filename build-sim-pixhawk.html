@@ -535,6 +535,9 @@
   }, 60);
 })();
 </script>
+<script>window.FIG_PAGE="pixhawk";</script>
+<script src="https://hongyul67-cpu.github.io/links/fig.js"></script>
+<script src="figs.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/fx.js"></script>
 <script src="drone-anim.js"></script>
 <script>
@@ -637,13 +640,18 @@ var PARTS=[
 ];
 (function(){
   var box=$("#parts");
+  // 그림(figs.js) — 부품 카드 위에 「그림으로 먼저 보기」, 카드를 누르면 설명 아래에 그 부품의 그림
+  if(window.DroneFigs){
+    var gf=DroneFigs.first(PARTS.map(function(p){return p.n}));
+    if(gf) box.insertAdjacentHTML("beforebegin",gf);
+  }
   PARTS.forEach(function(p,idx){
     var el=document.createElement("div");
     el.className="part"; el.dataset.idx=idx;
-    el.innerHTML='<div class="pico">'+p.i+'</div><div class="pname">'+p.n+'</div>';
+    el.innerHTML='<div class="pico">'+p.i+'</div><div class="pname">'+p.n+(window.DroneFigs&&DroneFigs.keysFor([p.n]).length?'<span class="dfig-mark" title="그림 있음"> 🖼️</span>':'')+'</div>';
     el.addEventListener("click",function(){
       el.classList.add("seen");
-      $("#partDetail").innerHTML='<h4>'+p.i+' '+p.n+'</h4><ul><li>'+p.d.join("</li><li>")+'</li></ul>';
+      $("#partDetail").innerHTML='<h4>'+p.i+' '+p.n+'</h4><ul><li>'+p.d.join("</li><li>")+'</li></ul>'+(window.DroneFigs?DroneFigs.card(p.n):'');
       var n=$$(".part.seen").length;
       $("#learnBar").style.width=(n/PARTS.length*100)+"%";
       var b=$("#toFrame");

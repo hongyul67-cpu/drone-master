@@ -166,6 +166,9 @@ BUILD.cards=function(sec,step,i){
   var card=el("div","card");
   card.appendChild(el("div","sectitle",'📖 '+step.label+' <span class="pill">먼저 정답부터</span>'));
   card.appendChild(el("p","lead",step.intro||"카드를 눌러 내용을 확인하자. 모두 확인하면 다음으로 넘어갈 수 있다."));
+  // 그림(figs.js) — 맨 위 「그림으로 먼저 보기」 + 카드를 누르면 설명 아래에 그 카드의 그림
+  var DF=window.DroneFigs, names=step.data.map(function(p){return p.n});
+  if(DF){ var gf=DF.first(names); if(gf) card.insertAdjacentHTML("beforeend",gf); }
   var box=el("div","cards"); card.appendChild(box);
   var detail=el("div","detail",'<h4>👆 카드를 눌러보자</h4><p style="margin:0;font-size:13.5px;color:var(--sub)">눌러야 다음 단계가 열린다.</p>');
   card.appendChild(detail);
@@ -173,11 +176,12 @@ BUILD.cards=function(sec,step,i){
   sec.appendChild(card);
 
   step.data.forEach(function(p){
-    var c=el("div","lc",'<div class="ci">'+p.i+'</div><div class="cn">'+p.n+'</div>');
+    var figHtml=DF?DF.card(p.n):"";
+    var c=el("div","lc"+(figHtml?" has-fig":""),'<div class="ci">'+p.i+'</div><div class="cn">'+p.n+(figHtml?'<span class="dfig-mark" title="그림 있음">🖼️</span>':'')+'</div>');
     c.addEventListener("click",function(){
       var fresh=!c.classList.contains("seen");
       c.classList.add("seen");
-      detail.innerHTML='<h4>'+p.i+' '+p.n+'</h4><ul><li>'+p.d.join("</li><li>")+'</li></ul>';
+      detail.innerHTML='<h4>'+p.i+' '+p.n+'</h4><ul><li>'+p.d.join("</li><li>")+'</li></ul>'+figHtml;
       detail.classList.remove("pop"); void detail.offsetWidth; detail.classList.add("pop");
       if(fresh && window.FX){ FX.punch(c); FX.burst(c,{color:"#38bdf8",n:6,dist:38}); FX.sound("up"); }
       var n=$$(".lc.seen",box).length;

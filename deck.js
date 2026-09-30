@@ -402,6 +402,41 @@ var FIG = {
   pSticks:function () { return grid8(); }
 };
 
+/* ── 배우기와 같은 그림(figs.js) ─────────────────────────────
+   그림25(2026-09-30): 위 어두운 그림 10개와 같은 주제를 figs.js 에 흰 종이 규격으로 다시 그렸다.
+   슬라이드도 그 그림을 쓴다 — 배우기와 **같은 그림**. figs.js 를 못 불러오면 위 옛 그림으로 돌아간다.
+   슬라이드에는 퀴즈가 있어 정답이 되는 이름표(ans)를 가린다(labels:false → ?).
+   캡션도 퀴즈 답이 드러나지 않게 따로 적었다. */
+function shared(key, cap, show) {
+  var G = window.FIG;
+  if (!G || !G.has || !G.has(key)) return '';
+  return one(G.svgOf(key, show ? {} : { labels:false }), cap);
+}
+var SAME = {
+  forces:   ['forces4',     '드론에 걸리는 네 가지 힘'],
+  hover:    ['liftStates',  '상승 · 호버링 · 하강 — 화살표 길이를 비교'],
+  sticks:   ['sticks',      '조종기 두 스틱 — 이름과 자리'],
+  torque:   ['torque',      '프로펠러가 도는 방향'],
+  weight:   ['weightScale', '무게 경계 — 250g · 2kg · 7kg · 25kg'],
+  lipo:     ['lipoScale',   '셀 하나의 전압 — 숫자를 그대로 외운다'],
+  check:    ['certFlow',    '검사의 종류 네 가지'],
+  regno:    ['regno',       '신고번호가 담고 있는 것'],
+  airspace: ['airspace4',   '하늘을 넷으로 나눈다'],
+  grade:    ['gradeLadder', 'A~G 일곱 등급 — 아래로 갈수록 느슨하다']
+};
+Object.keys(SAME).forEach(function (k) {
+  var old = FIG[k];
+  FIG[k] = function () { return shared(SAME[k][0], SAME[k][1]) || old(); };
+});
+/* 그림이 없던 슬라이드에 새로 붙인 것 */
+FIG.fUav      = function () { return shared('uavUas',     '비행체만 부르는 말과 전체를 부르는 말'); };
+FIG.fTilt     = function () { return shared('tiltHybrid', '로터를 기울이는 쪽과 따로 다는 쪽'); };
+FIG.fMast     = function () { return shared('magMast',    'GPS·나침반은 마스트 위에'); };
+FIG.fLaw      = function () { return shared('ultralight', '초경량비행장치의 종류'); };
+FIG.fYield    = function () { return shared('yield',      '항공기를 만났을 때'); };
+FIG.fWeight   = function () { return FIG.weight(); };
+FIG.forcesAll = function () { return shared('forces4', '네 가지 힘 — 양력 · 중력 · 추력 · 항력', true) || FIG.forces(); };
+
 /* ══════════ 슬라이드 원고 ══════════ */
 var LESSON = [
 
@@ -416,7 +451,7 @@ var LESSON = [
   anso:['수벌','매','잠자리','바람'], ansa:0,
   anse:'<b>수벌</b>이다. 벌이 윙윙거리는 소리에서 왔다.' },
 
-{ u:'1. 드론 개요', t:'UAV · UAS · RPAS — 무엇이 다른가',
+{ u:'1. 드론 개요', t:'UAV · UAS · RPAS — 무엇이 다른가', fig:'fUav',
   pts:['<b>UAV</b> (Unmanned Aerial Vehicle) — <b>비행체 그 자체</b>. 가장 널리 쓰는 공식 용어다.',
        '<b>UAS</b> (Unmanned Aerial System) — 비행체에 <b>지상통제소·통신 장비·조종자</b>까지 묶은 전체.',
        '<b>RPAS</b> (Remotely Piloted Aircraft System) — <b>사람이 원격으로 조종한다</b>는 점을 분명히 한 말. 국제민간항공기구(ICAO)가 쓴다.',
@@ -437,7 +472,7 @@ var LESSON = [
   anso:['고정익','회전익','둘 다 안 된다','활주로가 있어야 한다'], ansa:1,
   anse:'<b>회전익</b>이다. 수직 이착륙과 호버링이 되는 대신 체공 시간이 짧다.' },
 
-{ u:'1. 드론 개요', t:'틸트로터와 하이브리드 — 둘을 합치는 두 가지 길',
+{ u:'1. 드론 개요', t:'틸트로터와 하이브리드 — 둘을 합치는 두 가지 길', fig:'fTilt',
   pts:['<b>틸트로터</b> — 로터를 <b>기울일 수 있다</b>. 뜰 때는 세워 회전익처럼, 순항할 때는 눕혀 고정익처럼.',
        '두 방식의 장점을 합쳤지만 <b>구조가 복잡하고 비싸다</b>.',
        '<b>하이브리드</b> — 고정익 날개에 <b>수직 이착륙용 로터를 따로</b> 달았다.',
@@ -562,7 +597,7 @@ var LESSON = [
   anso:['FC','ESC','수신기','모터'], ansa:2,
   anse:'<b>수신기</b>다. 수신기가 받아 FC 로 넘긴다.' },
 
-{ u:'3. 드론의 기본 구조', t:'GPS·나침반은 왜 위로 올릴까',
+{ u:'3. 드론의 기본 구조', t:'GPS·나침반은 왜 위로 올릴까', fig:'fMast',
   pts:['지자기 센서는 모터·전선 같은 <b>전자장치와 가까우면 간섭</b>을 받는다.',
        '그래서 GPS/나침반 묶음은 <b>마스트 위</b>에 올려 단다.',
        '간섭을 받으면 기체가 <b>{{방향}}</b>을 잘못 알아 엉뚱한 쪽으로 날아간다.',
@@ -573,7 +608,7 @@ var LESSON = [
   anse:'모터·전선의 <b>간섭</b>을 피하기 위해서다.' },
 
 /* ───────── 4. 항공안전법과 조종자 증명 (4차시) ───────── */
-{ u:'4. 항공안전법', t:'드론은 법에서 무엇으로 불리나',
+{ u:'4. 항공안전법', t:'드론은 법에서 무엇으로 불리나', fig:'fLaw',
   pts:['<b>초경량비행장치</b> — 항공기·경량항공기보다 가벼운 비행장치를 묶어 부르는 법률 용어다.',
        '동력비행장치 · 행글라이더 · 패러글라이더 · 기구류 · <b>무인비행장치</b> · 회전익비행장치 · 동력패러글라이더 · 낙하산류가 들어간다.',
        '우리가 만드는 드론은 무인비행장치 중 <b>{{무인멀티콥터}}</b>다.',
@@ -605,7 +640,7 @@ var LESSON = [
   anso:['50m 미만','100m 미만','150m 미만','300m 미만'], ansa:2,
   anse:'<b>150m 미만</b>이다. 관제권·비행금지구역은 고도와 관계없이 승인이 필요하다.' },
 
-{ u:'4. 항공안전법', t:'드론에는 우선권이 없다',
+{ u:'4. 항공안전법', t:'드론에는 우선권이 없다', fig:'fYield',
   pts:['초경량비행장치는 다른 항공기에 대해 <b>우선권이 없다</b>.',
        '항공기나 경량항공기를 발견하면 <b>{{진로를 양보}}</b>해야 한다.',
        '<b>사람이 탄 비행체</b>의 안전이 항상 먼저다.',
@@ -680,7 +715,7 @@ var LESSON = [
   anso:['무인멀티콥터','무인헬리콥터','무인비행선','동력패러글라이더'], ansa:0,
   anse:'<b>M</b> 은 Multicopter — 우리가 만드는 드론이다. H 헬리콥터, P 패러글라이더, S 비행선.' },
 
-{ u:'6. 신고번호와 공역', t:'첫 자리 — 무게 등급',
+{ u:'6. 신고번호와 공역', t:'첫 자리 — 무게 등급', fig:'fWeight',
   pts:['첫 자리는 기체의 <b>최대이륙중량</b> 등급이다.',
        '조종자 증명의 <b>종 구분과 같은 경계</b>를 쓴다 — <b>250g · 2kg · 7kg · 25kg</b>.',
        '무거울수록 숫자가 <b>{{작다}}</b> — 25kg 초과가 가장 위쪽 등급(1종)이다.',
@@ -724,7 +759,7 @@ var LESSON = [
   anse:'<b>드론 원스톱 민원서비스</b>에서 신청한다. 조종자 증명은 한국교통안전공단, 안전성인증검사는 항공안전기술원이다.' },
 
 /* ───────── 7. 정리 ───────── */
-{ u:'7. 정리', t:'오늘 정리', fig:'forces',
+{ u:'7. 정리', t:'오늘 정리', fig:'forcesAll',
   pts:['드론은 <b>UAV</b>(비행체) · <b>UAS</b>(전체 시스템) · <b>RPAS</b>(원격 조종)로 부른다.',
        '네 가지 힘 — 양력 · 중력 · 추력 · 항력. <b>양력 = 중력</b>이면 호버링.',
        '신호는 <b>조종기 → 수신기 → FC → ESC → 모터</b> 순으로 흐른다.',

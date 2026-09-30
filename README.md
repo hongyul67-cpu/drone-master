@@ -30,6 +30,7 @@
 | 파일 | 역할 |
 |---|---|
 | `fx.js` | **연출 레이어.** `FX.ok(el)` 정답(파티클+펀치+점수·콤보+소리) / `FX.no(el)` 오답(흔들림+화면 플래시+콤보 리셋) / `FX.hud(el)` 점수·콤보 표시 / `FX.banner({icon,title,sub,stars,btn,onClose})` 클리어 배너 / `FX.starsFor(miss)` 별 등급 / `FX.countUp(el,to)` / `FX.sound(name)`. 소리는 교실을 생각해 **기본 꺼짐**, 오른쪽 아래 토글. |
+| `figs.js` | **배우기 그림 47장**(그림25, 2026-09-30). 공용 `links/fig.js` 로 그린 흰 종이 SVG. 카드 이름(`cards`)으로 연결되어 이론 6차시 · 03 부품 칩 · 임무장치 · 두 부품 도감(배우기 카드 99장 중 91장)과 수업 슬라이드 17장이 **같은 그림**을 쓴다. 배우기 맨 위 「🖼️ 그림으로 먼저 보기」 + 카드를 누르면 설명 아래에 그림(누르면 크게). `only:'pixhawk'` 그림은 `window.FIG_PAGE` 가 같은 페이지에서만(모터 번호가 FC마다 달라서). 슬라이드는 정답 이름표(`ans`)를 `?` 로 가린다 |
 | `drone-anim.js` | 부품이 하나씩 붙는 SVG 드론. `DroneAnim.mount(el,{layout})` → `part(name,on)` / `spin(0~2)` / `takeoff()`. layout이 `pixhawk`면 1·2번이 CCW, `multiwii`면 1·3번이 CW로 프로펠러가 반대로 돈다. |
 | `deck.js` | **수업 슬라이드 원고.** `window.LESSON`(슬라이드 배열) 과 `window.LESSFIG`(그림 함수 모음)를 내놓는다. 파일 이름이 `lesson.js` 가 아닌 까닭은 이 저장소의 `lesson.js` 가 **이미 다른 것**(이론 차시 학습 엔진)이기 때문이다. 뷰어 사본은 두지 않는다 — 고칠 일이 생기면 `links` 한 곳만 고친다 |
 | `lesson.js` + `lesson.css` | 이론 차시 공용 엔진. 데이터만 넘기면 화면·게임·채점·제출이 만들어진다. 화면 종류: `cards`(배우기) · `sort`(분류) · `match`(매칭) · `pick`(맞는 것 고르기) · `seq`(순서) · `custom`(직접 render) · `quiz`(자동 채점). 학습지 보기는 매번 섞인다. |
